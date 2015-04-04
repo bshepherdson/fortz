@@ -5,3 +5,6 @@
 
 : carray ( n "name" -- ) ( name: n -- c-addr )
   create allot align DOES> + ;
+
+: not ( ? -- ? ) 0= ;
+

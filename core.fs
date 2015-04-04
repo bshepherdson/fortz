@@ -7,21 +7,8 @@
 VARIABLE pc
 
 
-\ Reads the byte under PC. DOES NOT advance it.
-: pc@ ( -- u ) pc @ b@ ;
-
-\ Adjusts PC by the given amount.
-: pc+ ( n -- ) pc +! ;
-
-\ Bumps PC by one.
-: pc++ ( -- ) 1 pc+ ;
-
-\ Reads the byte at PC and advances it.
-: pc@+ ( -- u ) pc@ pc++ ;
-
-\ Reads a word at PC and advances it.
-: pc@w+ ( -- u ) pc@ 8 lshift   pc@   or ;
-
+\ Set in main.
+DEFER restart
 
 \ The Z-machine stack. Not directly accessible, so I can format it however.
 \ It's going to be used to store locals and routine state as well as things

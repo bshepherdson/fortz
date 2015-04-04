@@ -35,7 +35,7 @@
 
 : v3read ( parse text 2 -- )
   drop ( parse text )
-  print-status-line
+  print-v3-status
   \ Slightly hacky, since I'm asking Forth to write into the Z-machine's buffer.
   ba dup 1+ ram over b@ ( parse text c-addr maxlen )
   2dup accept           ( parse text c-addr maxlen len )
@@ -204,4 +204,14 @@
 \ check_arg_count argument-number
 \ TODO Implement check_arg_count
 :noname discard-args ." [Unimplemented: check_arg_count]" cr ; 31 VAROPS !
+
+\ Special case VAR format je.
+\ Branches if a is equal to any of the later values.
+: var_je ( d c b a n -- )
+  dup 1 = IF false zbranch EXIT THEN
+  1- -rot ( d c n b a )
+  2dup = IF drop swap discard-args   true zbranch EXIT THEN
+  nip swap ( d c a n-1 )
+  recurse
+;
 

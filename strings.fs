@@ -192,7 +192,7 @@ align
 
 : sep-or-space? ( char -- sep? )
   dup 32 = IF drop true EXIT THEN
-  dict-sepator?
+  dict-separator?
 ;
 
 

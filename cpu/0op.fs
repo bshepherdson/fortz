@@ -62,6 +62,9 @@
 \ new_line
 :noname cr ; 11 0OPS !
 
+\ TODO Implement v3 status lines - requires console handling
+: print-v3-status ( -- ) ;
+
 \ show_status
 :noname version 3 = IF print-v3-status THEN ; 12 0OPS !
 

@@ -9,7 +9,7 @@
 :noname discard-args 0 zstore ; 0 EXTOPS !
 
 \ restore table bytes name prompt -> (result)
-\ TODO Implement restoer properly.
+\ TODO Implement restore properly.
 \ This version simply fails.
 :noname discard-args 0 zstore ; 1 EXTOPS !
 
@@ -37,13 +37,20 @@
 
 \ save_undo -> (result)
 \ Returns -1 for "unable to provide this feature".
-:noname ( 0 -- ) drop -1 zstore ; 5 EXTOPS !
+:noname ( 0 -- ) drop -1 zstore ; 9 EXTOPS !
 
 \ restore-undo -> (result)
 \ Also returns -1. Behavior is undefined if no previous save_undo.
-:noname ( 0 -- ) drop -1 zstore ; 6 EXTOPS !
+:noname ( 0 -- ) drop -1 zstore ; 10 EXTOPS !
 
 
+\ TODO Implement Unicode support
+\ print_unicode char-number
+:noname discard-args ." [Unimplemented: print_unicode]" cr ; 11 EXTOPS !
+\ check_unicode char-number -> (result)
+:noname discard-args ." [Unimplemented: check_unicode]" cr ; 12 EXTOPS !
 
-
+\ TODO Implement true color support
+\ set_true_color fg bg
+:noname discard-args ." [Unimplemented: set_true_color]" cr ; 13 EXTOPS !
 

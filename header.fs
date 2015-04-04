@@ -39,3 +39,34 @@
 \ almost all the differences are on the 3/4 boundary.
 : 3or5 ( x y -- x-or-y ) version 3 > IF nip ELSE drop THEN ;
 
+
+\ Sets the various flag bits for this interpreter.
+: init-header-bits ( -- )
+  version 3 <= IF \ Set up flags 1 for early versions.
+    %00010000 \ Indicate no status line, no screen split, fixed-pitch font.
+    %01110000 \ Mask for the interpreter-set bits.
+  ELSE
+    0   \ None of these special features are available.
+    255 \ Mask: all settable by interpreter
+  THEN ( set mask )
+  hdr-flags1 b@ and or ( flags1' )
+  hdr-flags2 b! ( )
+
+  \ Flags 2 is set to 0; those features are unavailable.
+  0 hdr-flags2 w!
+
+  \ Set interpreter number 6, pretending to be an IBM PC.
+  6  hdr-interpreter-number b!
+  \ Set interpreter version A.
+  65 hdr-interpreter-version b!
+
+  25 hdr-screen-height-chars b!
+  80 hdr-screen-width-chars  b!
+  25 hdr-screen-height-units w!
+  80 hdr-screen-width-units  w!
+
+  1  hdr-font-width-units  b!
+  1  hdr-font-height-units b!
+
+  \ TODO set default colors.
+;
