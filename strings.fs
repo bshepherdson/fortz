@@ -178,3 +178,175 @@ align
 
 \ TODO Accented and unicode characters.
 
+: dict-header ( -- ra-dict-header ) hdr-dictionary w@ ba ;
+
+: dict-separator? ( char -- sep? )
+  dict-header dup b@ ( char ra-hdr n-seps )
+  swap 1+ swap
+  0 DO
+    2dup I + b@ = ( char ra-hdr match? )
+    IF drop UNLOOP EXIT THEN
+  LOOP
+  2drop false
+;
+
+: sep-or-space? ( char -- sep? )
+  dup 32 = IF drop true EXIT THEN
+  dict-sepator?
+;
+
+
+: dict-n-chars ( -- length ) 6 9 3or5 ;
+
+\ Fills the input-buffer with 9 5s for Z-char padding.
+: fill-5s ( -- ) input-buffer dup 9 + swap DO 5 i c! LOOP ;
+
+: build-z-word ( buf -- buf' word )
+  dup  c@ 10 lshift    swap 1+ swap ( buf hi )
+  over c@ 5  lshift or swap 1+ swap ( buf hi+mid )
+  over c@           or swap 1+ swap ( buf word )
+;
+
+
+\ Encodes a single ASCII char into possibly multiple Z-chars.
+\ These land in the input-buffer, using ptr-expansion.
+\ No uppercase letters; they've been lowercased.
+: encode-char ( ascii-char -- )
+  dup 97 123 within IF 91 - string-expand EXIT THEN
+  a2-table 24 + a2-table DO ( char )
+    dup i c@ = IF 5 string-expand string-expand UNLOOP EXIT THEN
+  LOOP
+  \ If we're still here, it's not in A0 or A2, so output the multi-byte
+  \ sequence for it.
+  5 string-expand
+  6 string-expand
+  dup 5 rshift 31 and string-expand
+               31 and string-expand
+;
+
+
+
+: dict-after-terms ( -- ra ) dict-header dup  b@ + 1+ ;
+: dict-entry-size  ( -- u )  dict-after-terms b@    ;
+: dict-entry-count ( -- u )  dict-after-terms 1+ w@ ;
+: dict-entry-0     ( -- ra ) dict-after-terms 3  +  ;
+
+
+\ Tries to look up the word whose encoded self is in output-buffer.
+\ Returns 0 for non-found words.
+: dict-lookup ( -- ra-dict )
+  dict-entry-size 4 6 3or5 ( entry-size bytes )
+  dict-entry-0  ram
+  dict-entry-size dict-entry-count * ( entry-size bytes c-addr total-size )
+  over + swap ( entry-size bytes c-addr-end c-addr-start )
+  DO ( entry-size bytes )
+    i over             ( size bytes dict-word bytes )
+    output-buffer over ( size bytes dict-word bytes input-word bytes )
+    compare            ( size bytes cmp )
+    dup 0<= IF \ Early exit
+      -rot 2drop ( cmp )
+      0= IF i ELSE 0 THEN
+      UNLOOP EXIT
+    THEN
+    drop ( size bytes )
+  over +LOOP
+
+  2drop 0
+;
+
+
+\ When finished, the encoded word is in the output-buffer.
+: encode-word ( text len -- )
+  \ Go character-for-character, emitting as many Z-chars as necessary.
+  \ Emitted Z-chars go into the input-buffer.
+  string-reset
+  fill-5s
+  0 DO ( text )
+    dup I + b@  ( text ascii-char )
+    encode-char ( text ) \ Writes Z-chars into input-buffer
+  LOOP
+  drop ( )
+
+  input-buffer
+  2 3 3or5 0 DO ( buf )
+    build-z-word ( buf' word )
+    dup 8 rshift
+    string-output-char \ high byte
+    string-output-char \ low byte
+  LOOP ( buf )
+  drop
+
+  \ Attempt to find the freshly-parsed word in the dictionary.
+  dict-lookup ( ra-dict )
+;
+
+
+: word-found ( p t l t' l' -- p' t' l' )
+  2dup >r >r        ( p t l t' l'    R: l' t' ) \ Set aside for later.
+  rot               ( p t t' l' l )
+  swap -            ( p t t' len )
+  3 pick 2 +        ( p t t' len len-addr )
+  2dup b! drop      ( p t t' len )
+  >r drop           ( p t     R: l' t' len )
+  2dup swap 3 + b!  ( p t     R: l' t' len )
+  r>                ( p t len R: l' t' )
+  2dup encode-word  ( p t len ra-word   R: l' t' )
+  >r 2drop r>       ( p ra-word         R: l' t' )
+  over              ( p ra-word p       R: l' t' )
+  w!                ( p                 R: l' t' )
+  4 + r> r>         ( p' t' l' )
+;
+
+: parse-word ( parse text len -- parse' text' len' )
+  \ Read the next word into the parse buffer.
+  \ First, advance text until we're at the next non-whitespace character.
+  \ Whitespace is actually just spaces. No tabs etc.
+  BEGIN
+    dup 0= IF EXIT THEN \ Bail if the text buffer runs out.
+    over b@ 32 = ( p t l space? )
+  WHILE
+    1+ swap 1+ swap
+  REPEAT
+
+  \ Now text points at a real character.
+  \ Check if it's a separator first, that's a special case.
+  over b@ dict-separator? IF
+    2dup 1- swap 1+ swap ( p t l t' l' )
+    word-found           ( p' t' l' )
+    EXIT
+  THEN
+
+  \ Read forward past the string, saving its start location.
+  2dup         ( p t l t' l' )
+  BEGIN
+    2dup 0 = ( ... t' end? )
+    not IF b@ sep-or-space? not ELSE false THEN
+    ( keep-searching? )
+  WHILE
+    1- swap 1+ swap ( p t l t' l' )
+  REPEAT
+
+  \ When we get down here, l' is the new length and t' is the address AFTER
+  \ the word ends. Write that into the parse buffer.
+  word-found
+;
+
+
+
+\ Read the words and write parse data for them.
+\ Reads from the text buffer and stores encoded Z-characters into PAD.
+\ parse points at the beginning of the parse buffer, which contains
+\ a byte for the max words, a byte of present words (to set) and 4 bytes per
+\ word it has room for.
+\ Text points at the start of the text (since it differs by version).
+\ Len gives the number of words not including the terminator.
+: parse-line ( parse text len -- )
+  \ Save parse for later, and bump the one on the stack to the first record.
+  rot dup >r 2 + -rot ( parse' text len   R: parse )
+  BEGIN dup WHILE parse-word REPEAT
+  ( parse' text 0 )
+  2drop r> swap ( parse parse' )
+  over 2 + -    ( parse delta-bytes )
+  2 rshift      ( parse words-parsed )
+  swap 1+ b!    ( )
+;

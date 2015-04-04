@@ -13,6 +13,46 @@
 \ get_prop_len ( ba-data ) Given the byte-address of an object's property's data
 \ this returns the length of the data field. Requires working backward.
 \ Returns 0 when passed 0, as a special case.
-:noname dup 0= IF zstore ELSE prop-data>prop prop-size zstore THEN ;
+:noname dup 0= IF zstore ELSE prop-data>prop prop-size zstore THEN ; 4 1OPS !
 
+\ inc var-ref
+:noname dup var@ 1+ var! ; 5 1OPS !
+
+\ dec var-ref
+:noname dup var@ 1- var! ; 6 1OPS !
+
+
+\ print_addr
+:noname ba print-string ; 7 1OPS !
+
+\ call_1s routine -> (result)
+:noname 1 true zcall ; 8 1OPS !
+
+\ remove_obj object
+:noname object-remove ; 9 1OPS !
+
+\ print_obj object
+:noname zobject short-name print-string ; 10 1OPS !
+
+\ ret value
+:noname zreturn ; 11 1OPS !
+
+\ jump ?(label) - not a branch! 2-byte signed offset.
+:noname signed 2 - pc+ ; 12 1OPS !
+
+\ print_paddr addr
+:noname pa print-string ; 13 1OPS !
+
+\ load (var) -> (result)
+:noname var@ zstore ; 14 1OPS !
+
+\ v1-4: not value -> (result)
+\ v5:   call_1n routine
+:noname
+  version 4 <= IF \ not
+    invert 0xffff and zstore
+  ELSE \ call_1n
+    1 false zcall
+  THEN
+; 15 1OPS !
 

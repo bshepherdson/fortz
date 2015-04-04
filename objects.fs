@@ -16,6 +16,9 @@
 : sibling ( ra-obj -- ra-relative ) 5 8  3or5 + ;
 : child   ( ra-obj -- ra-relative ) 6 10 3or5 + ;
 
+: relative@ ( ra-relative -- value ) version 3 <= IF b@ ELSE w@ THEN ;
+: relative! ( value ra-relative -- ) version 3 <= IF b! ELSE w! THEN ;
+
 \ Turns an object from its address to the property table address.
 \ Note that this points at the slot in the object record holding the pointer.
 \ You probably want prop-table (address of the first property) or short-name.
@@ -76,4 +79,88 @@
     1- dup b@ 128 and IF 1- THEN
   THEN
 ;
+
+\ Returns the address of the (first) size byte for the given prop.
+\ Returns 0 if this object does not have the property.
+: prop-find ( prop obj-num -- ra-prop )
+  zobject prop-table ( prop ra-table )
+  swap               ( ra-table prop )
+  BEGIN
+    over b@ 0= IF 2drop 0 EXIT THEN
+    over prop-number    ( ra-table prop num )
+    over = IF drop EXIT THEN
+    swap prop-next swap
+  AGAIN
+;
+
+
+\ Fetches the property value (must be one or two bytes).
+\ Returns the default if the object is missing the property.
+: prop-read ( prop obj-num -- value )
+  over >r   \ Set aside the prop number in case of default
+  prop-find ( ra-prop )
+  r>
+  over 0= IF ( ra-prop prop )
+    nip  2 * property-defaults + w@
+  ELSE
+    drop dup prop-data swap prop-size ( ra-data size )
+    1 = IF b@ ELSE w@ THEN ( value )
+  THEN
+;
+
+
+\ Walks the child list of the given object and returns the
+\ ADDRESS of the RELATIVE FIELD wherein the second named object is found.
+\ NOT SAFE if the child isn't found.
+: find-child ( ra-this target -- ra-relative )
+  over child ( this target ra-child )
+  dup >r     ( this target ra-child   R: ra-child )
+  relative@ ( this target child   R: ra-child )
+  over = IF ( this target ) 2drop r> EXIT THEN
+  ( this target   R: ra-child )
+  swap drop r>  ( target new-this )
+  \ Follow the sibling chain until we find it.
+  swap ( this target )
+  BEGIN
+    over sibling relative@ ( this target sibling )
+    over = ( this target match? )
+    not
+  WHILE
+    swap sibling relative@ zobject swap
+  REPEAT
+  ( this target )
+  drop sibling
+;
+
+\ Removes the given object (by number) from the tree, so it is parentless.
+\ Find the parent, walk the children.
+: object-remove ( num -- )
+  dup zobject dup parent relative@ zobject ( this num ra-parent )
+  swap find-child ( this ra-relative )
+  \ Now store my sibling into that field.
+  over sibling relative@ swap relative! ( this )
+  \ And remove my parent.
+  0 swap   parent relative!
+;
+
+
+\ Index of the byte in question.
+: attr-index ( attr -- offset ) 3 rshift ;
+: attr-mask  ( attr -- mask )   3 and 7 swap -  1 swap lshift ;
+: attr@ ( attr obj -- ? )
+  zobject over attr-index + ( attr ra )
+  swap attr-mask  ( ra mask )
+  b@ and 0<> ( ? )
+;
+: attr! ( ? attr obj -- )
+  rot r>                    ( attr ra    R: ? )
+  zobject over attr-index + ( attr ra )
+  swap attr-mask            ( ra mask )
+  over b@                   ( ra mask old )
+  over invert 255 and and   ( ra mask masked )
+  swap r>                   ( ra masked mask ? )
+  and or                    ( ra updated )
+  swap b!
+;
+
 
