@@ -136,3 +136,8 @@
   ( )
   \ Now all the pointers should be set up properly.
 ;
+
+
+\ Given a count on top, deletes the count and count more values.
+: discard-args ( ... n -- ) BEGIN dup WHILE nip 1- REPEAT ;
+
