@@ -40,7 +40,7 @@
 
 
 \ ret_popped
-:noname pop zreturn ;
+:noname pop zreturn ; 8 0OPS !
 
 \ Throws away the top of the stack.
 : 0OP_pop pop drop ;
