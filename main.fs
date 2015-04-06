@@ -1,7 +1,12 @@
 \ Main routines for loading and running the Z-machine
 
+VARIABLE breakpoint
+
+: break ( ra -- ) breakpoint ! ;
+
 \ Main interpreter loop.
 : interp ( -- )
+  BEGIN breakpoint @ pc @ = IF dbg execute-op ELSE execute-op THEN AGAIN
 ;
 
 VARIABLE story-file
@@ -32,7 +37,7 @@ VARIABLE story-file
   version
   dup 8  = IF drop ['] pa-late  IS pa EXIT THEN
   dup 6 >= IF ABORT" Versions 6 and 7 are not supported. Use v3-5 or v8." THEN
-      4 >= IF drop ['] pa-mid   IS pa EXIT THEN
+      4 >= IF ['] pa-mid   IS pa EXIT THEN
   ['] pa-early IS pa
 ;
 
@@ -41,12 +46,13 @@ VARIABLE story-file
 \ restart
 :noname ( -- )
   \ Reset some internal state.
-  init-packed-addrs
   true-seed
   stack-top sp !
 
   reload-file
+  init-packed-addrs
   init-header-bits
+  hdr-init-pc w@   pc !
 ; IS restart
 
 
@@ -55,5 +61,5 @@ VARIABLE story-file
 \ restart
 
 \ For testing
-S" Zork1.z3" load-file reload-file
+S" etude.z5" load-file restart interp
 

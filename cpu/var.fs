@@ -5,7 +5,7 @@
 32 array VAROPS
 
 \ call_vs routine args... -> (result)
-:noname true zcall ; 0 VAROPS !
+:noname swap pa swap   true zcall ; 0 VAROPS !
 
 \ storew array word-index value
 :noname ( value index array 3 -- ) drop ba swap 2 * + w! ; 1 VAROPS !
@@ -24,7 +24,7 @@
 
 \ Converts the given string to lowercase (ASCII only).
 : lower-case ( c-addr len -- )
-  over + swap DO
+  over + swap ?DO
     i c@ dup 65 91 within IF
       32 + i c!
     ELSE drop THEN
@@ -40,7 +40,9 @@
   ba dup 1+ ram over b@ ( parse text c-addr maxlen )
   2dup accept           ( parse text c-addr maxlen len )
   nip 2dup lower-case   ( parse text c-addr len )
-  2dup + 1+ 0 swap b!   ( parse text len ) \ Write 0 terminator
+  \ Write 0 terminator. c! not b!, this is a real Forth address.
+  2dup + 0 swap c!   ( parse text c-addr len )
+  nip                ( parse text len )
 
   \ Only parse if the parse buffer is nonzero.
   >r over IF 1+ r> parse-line ELSE r> drop 2drop THEN
@@ -60,11 +62,15 @@
 : v5read ( routine time parse text n-args -- )
   >r \ Set aside the arg count.
   \ Slightly hacky, since I'm asking Forth to write into the Z-machine's buffer.
-  ba dup 1+ ram over b@ ( parse text c-addr maxlen )
+  ba dup 2 + ram over b@ ( parse text c-addr maxlen )
   2dup accept           ( parse text c-addr maxlen len )
   nip 2dup lower-case   ( parse text c-addr len )
   nip                   ( parse text len )
   2dup swap 1+ b!       ( parse text len ) \ Write read legth into text buffer
+
+  \ Check that we were provided a parse buffer.
+  r> dup >r ( parse text len n-args )
+  1 = IF 2drop r> drop ( -- parse wasn't actually present ) 13 zstore EXIT THEN
 
   \ Only parse if the parse buffer is nonzero.
   >r over IF 2 + r> parse-line ELSE r> drop 2drop THEN
@@ -119,7 +125,7 @@
 :noname ( win 1 -- )   2drop ." [Unimplemented: set_window]"   cr ; 11 VAROPS !
 
 \ call_vs2 routine args... (up to 7) -> (result)
-:noname ( args... routine n -- ) true zcall ; 12 VAROPS !
+:noname ( args... routine n -- ) swap pa swap   true zcall ; 12 VAROPS !
 
 \ erase_window
 :noname ( win 1 -- ) 2drop ." [Unimplemented: erase_window]" cr ; 13 VAROPS !
@@ -172,9 +178,9 @@
 :noname ( value 1 -- ) drop invert 0xffff and zstore ; 24 VAROPS !
 
 \ call_vn routine args...
-:noname ( args... routine n -- ) false zcall ; 25 VAROPS !
+:noname ( args... routine n -- ) swap pa swap   false zcall ; 25 VAROPS !
 \ call_vn2 routine args...
-:noname ( args... routine n -- ) false zcall ; 26 VAROPS !
+:noname ( args... routine n -- ) swap pa swap   false zcall ; 26 VAROPS !
 
 
 \ TODO Implement tokenize

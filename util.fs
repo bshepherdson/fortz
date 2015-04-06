@@ -8,3 +8,5 @@
 
 : not ( ? -- ? ) 0= ;
 
+: dump-bytes ( c-addr u -- ) 0 DO dup i + c@ hex. LOOP cr drop ;
+

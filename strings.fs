@@ -246,9 +246,9 @@ CONSTANT a2-table
     i over             ( size bytes dict-word bytes )
     output-buffer over ( size bytes dict-word bytes input-word bytes )
     compare            ( size bytes cmp )
-    dup 0<= IF \ Early exit
+    dup 0>= IF \ Early exit
       -rot 2drop ( cmp )
-      0= IF i ELSE 0 THEN
+      0= IF i 0 ram - ELSE 0 THEN
       UNLOOP EXIT
     THEN
     drop ( size bytes )
@@ -279,34 +279,41 @@ CONSTANT a2-table
   LOOP ( buf )
   drop
 
+  \ Update the constructed input to have the appropriate end bit.
+  \ TODO Is the end flag only set on short words? What about truncated ones?
+  2 4 3or5 output-buffer + dup c@ 128 or swap c!
+
   \ Attempt to find the freshly-parsed word in the dictionary.
   dict-lookup ( ra-dict )
 ;
 
 
-: word-found ( p t l t' l' -- p' t' l' )
-  2dup >r >r        ( p t l t' l'    R: l' t' ) \ Set aside for later.
-  rot               ( p t t' l' l )
-  swap -            ( p t t' len )
-  3 pick 2 +        ( p t t' len len-addr )
-  2dup b! drop      ( p t t' len )
-  >r drop           ( p t     R: l' t' len )
-  2dup swap 3 + b!  ( p t     R: l' t' len )
-  r>                ( p t len R: l' t' )
-  2dup encode-word  ( p t len ra-word   R: l' t' )
-  >r 2drop r>       ( p ra-word         R: l' t' )
-  over              ( p ra-word p       R: l' t' )
-  w!                ( p                 R: l' t' )
-  4 + r> r>         ( p' t' l' )
+: word-found ( t0 p t l t' l' -- t0 p' t' l' )
+  2dup >r >r        ( t0 p t l t' l'    R: l' t' ) \ Set aside for later.
+  rot               ( t0 p t t' l' l )
+  swap -            ( t0 p t t' len )
+  3 pick 2 +        ( t0 p t t' len len-addr )
+  2dup b! drop      ( t0 p t t' len )
+  >r drop           ( t0 p t     R: l' t' len )
+  2 pick            ( t0 p t t0  R: l' t' len )
+  2dup -            ( t0 p t t0 t_i   R: l' t' len )
+  3 pick            ( t0 p t t0 t_i p R: l' t' len )
+  3 + b!            ( t0 p t t0       R: l' t' len )
+  drop r>           ( t0 p t len      R: l' t' )
+  2dup encode-word  ( t0 p len ra-word   R: l' t' )
+  >r 2drop r>       ( t0 p ra-word         R: l' t' )
+  over              ( t0 p ra-word p       R: l' t' )
+  w!                ( t0 p                 R: l' t' )
+  4 + r> r>         ( t0 p' t' l' )
 ;
 
-: parse-word ( parse text len -- parse' text' len' )
+: parse-word ( text0 parse text len -- text0 parse' text' len' )
   \ Read the next word into the parse buffer.
   \ First, advance text until we're at the next non-whitespace character.
   \ Whitespace is actually just spaces. No tabs etc.
   BEGIN
     dup 0= IF EXIT THEN \ Bail if the text buffer runs out.
-    over b@ 32 = ( p t l space? )
+    over b@ 32 = ( t0 p t l space? )
   WHILE
     1+ swap 1+ swap
   REPEAT
@@ -314,24 +321,24 @@ CONSTANT a2-table
   \ Now text points at a real character.
   \ Check if it's a separator first, that's a special case.
   over b@ dict-separator? IF
-    2dup 1- swap 1+ swap ( p t l t' l' )
-    word-found           ( p' t' l' )
+    2dup 1- swap 1+ swap ( t0 p t l t' l' )
+    word-found           ( t0 p' t' l' )
     EXIT
   THEN
 
   \ Read forward past the string, saving its start location.
-  2dup         ( p t l t' l' )
+  2dup         ( t0 p t l t' l' )
   BEGIN
     2dup 0 = ( ... t' end? )
-    not IF b@ sep-or-space? not ELSE false THEN
+    not IF b@ sep-or-space? not ELSE drop false THEN
     ( keep-searching? )
   WHILE
-    1- swap 1+ swap ( p t l t' l' )
+    1- swap 1+ swap ( t0 p t l t' l' )
   REPEAT
 
   \ When we get down here, l' is the new length and t' is the address AFTER
   \ the word ends. Write that into the parse buffer.
-  word-found
+  word-found ( t0 p' t' l' )
 ;
 
 
@@ -345,11 +352,14 @@ CONSTANT a2-table
 \ Len gives the number of words not including the terminator.
 : parse-line ( parse text len -- )
   \ Save parse for later, and bump the one on the stack to the first record.
-  rot dup >r 2 + -rot ( parse' text len   R: parse )
+  \ Likewise, copy text to produce t0, the start of the text.
+  >r tuck r> ( text0 parse text len )
+  rot dup >r 2 + -rot ( text0 parse' text len   R: parse )
   BEGIN dup WHILE parse-word REPEAT
-  ( parse' text 0 )
-  2drop r> swap ( parse parse' )
-  over 2 + -    ( parse delta-bytes )
-  2 rshift      ( parse words-parsed )
-  swap 1+ b!    ( )
+  ( text0 parse' text 0 )
+  2drop r> swap ( text0 parse parse' )
+  over 2 + -    ( text0 parse delta-bytes )
+  2 rshift      ( text0 parse words-parsed )
+  swap 1+ b!    ( text0 )
+  drop ( )
 ;

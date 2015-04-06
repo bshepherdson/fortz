@@ -47,7 +47,7 @@ variable var-count
   var-count @ ( count )
   BEGIN dup 0> WHILE ( ... count )
     1- ( ... index/count' )
-    dup @ ( ... count' value )
+    dup var-args @ ( ... count' value )
     swap  ( ... value count' )
   REPEAT
   drop ( args... )
@@ -75,7 +75,8 @@ variable var-count
     26 OF 2 read-var-args ENDOF
     drop 1 read-var-args 0 ( args... n-args dummy )
     ENDCASE ( args... n-args   R: op-num )
-    r> VAROPS @ execute
+    r>
+    VAROPS @ execute
   ELSE ( op-num ) \ 2OP count
     >r 1 read-var-args drop r> 2OPS @ execute
   THEN
@@ -91,14 +92,16 @@ variable var-count
 
 \ Runs a single opcode.
 : execute-op ( -- )
+  \ pc @
   pc@+      ( opcode )
+  \ swap hex. ." : " dup hex. cr
   dup 0xbe =   version 5 >= and IF extended-form EXIT THEN
   \ TODO je special case with variable args.
   dup 6 rshift 3 and ( opcode top-two-bits )
   CASE
   3 OF variable-form ENDOF
   2 OF short-form    ENDOF
-  long-form 0
+  drop long-form 0
   ENDCASE
 ;
 

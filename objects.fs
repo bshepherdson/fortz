@@ -101,7 +101,8 @@
   prop-find ( ra-prop )
   r>
   over 0= IF ( ra-prop prop )
-    nip  2 * property-defaults + w@
+    \ Properties are numbered from 1, but the defaults table is 0-based.
+    nip  1- 2 * property-defaults + w@
   ELSE
     drop dup prop-data swap prop-size ( ra-data size )
     1 = IF b@ ELSE w@ THEN ( value )
@@ -111,11 +112,12 @@
 
 \ Walks the child list of the given object and returns the
 \ ADDRESS of the RELATIVE FIELD wherein the second named object is found.
-\ NOT SAFE if the child isn't found.
+\ Returns 0 if the child is not found.
 : find-child ( ra-this target -- ra-relative )
   over child ( this target ra-child )
   dup >r     ( this target ra-child   R: ra-child )
   relative@ ( this target child   R: ra-child )
+  dup 0= IF r> 2drop 2drop ( ) 0 EXIT THEN
   over = IF ( this target ) 2drop r> EXIT THEN
   ( this target   R: ra-child )
   swap drop r>  ( target new-this )
@@ -123,6 +125,7 @@
   swap ( this target )
   BEGIN
     over sibling relative@ ( this target sibling )
+    dup 0= IF 2drop drop 0 EXIT THEN
     over = ( this target match? )
     not
   WHILE
@@ -135,8 +138,10 @@
 \ Removes the given object (by number) from the tree, so it is parentless.
 \ Find the parent, walk the children.
 : object-remove ( num -- )
-  dup zobject dup parent relative@ zobject ( this num ra-parent )
+  dup zobject dup parent relative@ zobject ( num this ra-parent )
+  rot swap ( this num ra-parent )
   swap find-child ( this ra-relative )
+  dup 0= IF 2drop EXIT THEN
   \ Now store my sibling into that field.
   over sibling relative@ swap relative! ( this )
   \ And remove my parent.

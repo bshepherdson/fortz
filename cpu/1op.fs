@@ -16,17 +16,17 @@
 :noname dup 0= IF zstore ELSE prop-data>prop prop-size zstore THEN ; 4 1OPS !
 
 \ inc var-ref
-:noname dup var@ 1+ var! ; 5 1OPS !
+:noname dup var@ 1+ swap var! ; 5 1OPS !
 
 \ dec var-ref
-:noname dup var@ 1- var! ; 6 1OPS !
+:noname dup var@ 1- swap var! ; 6 1OPS !
 
 
 \ print_addr
 :noname ba print-string ; 7 1OPS !
 
 \ call_1s routine -> (result)
-:noname 1 true zcall ; 8 1OPS !
+:noname pa 1 true zcall ; 8 1OPS !
 
 \ remove_obj object
 :noname object-remove ; 9 1OPS !
@@ -52,7 +52,7 @@
   version 4 <= IF \ not
     invert 0xffff and zstore
   ELSE \ call_1n
-    1 false zcall
+    pa 1 false zcall
   THEN
 ; 15 1OPS !
 

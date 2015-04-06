@@ -60,7 +60,8 @@
   rot ( ra-dest sib obj )
   dup >r
   zobject sibling relative! ( ra-dest   R: obj )
-  r> swap child relative! ( )
+  r> swap
+  child relative! ( )
 ; 14 2OPS !
 
 
@@ -94,15 +95,15 @@
 :noname ( b a -- ) math( * math) ; 22 2OPS !
 
 \ div a b -> (result) - sm/rem does the right kind of symmetric division.
-:noname ( b a -- ) signed s>d swap signed sm/rem zstore drop ; 23 2OPS !
+:noname ( b a -- ) signed s>d rot signed sm/rem zstore drop ; 23 2OPS !
 \ mod a b -> (result)
-:noname ( b a -- ) signed s>d swap signed sm/rem drop zstore ; 24 2OPS !
+:noname ( b a -- ) signed s>d rot signed sm/rem drop zstore ; 24 2OPS !
 
 
 \ call_2s routine arg
-:noname ( arg routine -- ) 2 true  zcall ; 25 2OPS !
+:noname ( arg routine -- ) pa 2 true  zcall ; 25 2OPS !
 \ call_2n routine arg
-:noname ( arg routine -- ) 2 false zcall ; 26 2OPS !
+:noname ( arg routine -- ) pa 2 false zcall ; 26 2OPS !
 
 \ TODO Implement me COLOR
 \ set_colour fg bg

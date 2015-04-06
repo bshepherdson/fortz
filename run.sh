@@ -1,6 +1,8 @@
 #!/bin/sh
 
-gforth \
+GFORTH=${GFORTH:-gforth-itc}
+
+$GFORTH \
   util.fs \
   random.fs \
   core.fs \

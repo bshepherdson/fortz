@@ -8,7 +8,7 @@
 \ Expects the global number from 16 to 255. Returns the Z-machine ra of it.
 : global ( n -- ra ) 16 - 2 * ( offset ) hdr-globals w@ + ( ra ) ;
 : global@ ( n -- value ) global w@ ;
-: global! ( n value -- ) global w! ;
+: global! ( value n -- ) global w! ;
 
 \ Reads from a given var number.
 : var@ ( n -- value )
@@ -60,7 +60,7 @@
 : zbranch ( ? -- )
   pc@+ ( ? branch-hi )
   \ Invert flag if bit 7 is 0.
-  dup 128 and not IF >r invert r> THEN ( branch? branch-hi )
+  dup 128 and not IF >r not r> THEN ( branch? branch-hi )
   \ If bit 6 is 1, single byte 0-63. If 0, two-byte signed 14-bit offset.
   dup 64 and IF
     63 and
@@ -85,13 +85,17 @@
 \ Copies the default local values at routine+1, routine+3, etc. into the locals.
 : copy-locals ( ra-routine local-count -- )
   swap 1+ swap ( ra-local-1 local-count -- )
-  0 DO ( ra-local-1 )
+  0 ?DO ( ra-local-1 )
     I ( ra-local-1 0-based-local-number )
     2dup 2 * + w@ ( ra-local-1 0-based-local-number value )
     swap 1+ local! ( ra-local-1 )
   LOOP
   drop
 ;
+
+\ Given a count on top, deletes the count and count more values.
+: discard-args ( ... n -- ) BEGIN dup WHILE nip 1- REPEAT ;
+
 
 \ Expects the arguments (first one on top) with the routine address above it,
 \ and the counter (#args + 1) above that. Topmost is a flag for whether a return
@@ -102,9 +106,10 @@
 \ address, needs to be done before calling zcall.
 : zcall ( argN ... arg2 arg1 ra-routine n return? -- )
   rot ( args... n ret? routine )
+  dup 0= IF drop IF 0 zstore THEN discard-args EXIT THEN
   dup b@ ( ... routine local-count )
   \ The new FP will be the old SP minus 2*(locals+1)
-  sp @ over 1+ 2 * - ( ... routine local-count new-fp )
+  sp @ over 1+ cells - ( ... routine local-count new-fp )
   fp @ over ! \ Store the old fp into the new fp.
   \ And the new fp value into the variable.
   fp !    ( ... routine local-count )
@@ -130,14 +135,11 @@
 
   \ Note that N is one greater than the number of arguments. Perfect, since
   \ locals are numbersed from 1.
-  1 DO
+  1 ?DO \ Don't want to loop if they're equal. No args to copy.
     I local!
   LOOP
   ( )
   \ Now all the pointers should be set up properly.
 ;
 
-
-\ Given a count on top, deletes the count and count more values.
-: discard-args ( ... n -- ) BEGIN dup WHILE nip 1- REPEAT ;
 
