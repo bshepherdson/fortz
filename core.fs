@@ -15,7 +15,7 @@ DEFER restart
 \ pushed by the game.
 \ Stack design is full-descending, ie. decrement-before-store
 1024 cells allot
-here @ CONSTANT stack-top
+here CONSTANT stack-top
 VARIABLE sp
 stack-top sp !
 

@@ -54,3 +54,6 @@ VARIABLE story-file
 \ parse-file-name
 \ restart
 
+\ For testing
+S" Zork1.z3" load-file reload-file
+

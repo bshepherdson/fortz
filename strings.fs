@@ -21,10 +21,9 @@
 \ - Second, it processes the string from ptr-input to the $FF, outputting to
 \   ptr-output.
 
-here @ CONSTANT input-buffer
-2048 allot align
-here @ CONSTANT output-buffer
-1024 allot align
+here 2048 allot align CONSTANT input-buffer
+here 1024 allot align CONSTANT output-buffer
+
 
 VARIABLE ptr-expansion
 VARIABLE ptr-input
@@ -69,19 +68,20 @@ defer (parse-string)
 \ Upper case. A = 65
 : alphabet-1 ( zc -- c ) 59 + ;
 
-here @ CONSTANT a2-table
+here
 char 0 c,   char 1 c,   char 2 c,   char 3 c,   char 4 c,
 char 5 c,   char 6 c,   char 7 c,   char 8 c,   char 9 c,
 char . c,   char , c,   char ! c,   char ? c,   char _ c,
 char # c,   char ' c,   34     c,   char / c,   char \ c,
 char - c,   char : c,   char ( c,   char ) c,
 align
+CONSTANT a2-table
 
 : alphabet-2 ( zc -- c )
   CASE
   6 OF char-literal ENDOF
   7 OF 10 ENDOF
-  8 - a2-table + c@
+  8 - a2-table + c@ 0 ( c 0-dummy )
   ENDCASE
 ;
 
@@ -97,7 +97,8 @@ align
 
 \ Identifies and outputs (to the buffer) an abbreviation.
 : abbreviation ( u -- )
-  1- 32 * ( index )
+  1- 32 * ( block )
+  string-next-char + ( index )
   2 *     ( offset )
   hdr-abbreviations w@ ba ( offset ra )
   +     ( ra-entry )
@@ -115,25 +116,27 @@ align
 \ TODO Doesn't handle versions 1 or 2.
 : process-char ( -- ? )
   string-next-char
-  dup 255 = IF true EXIT THEN \ Bail with TRUE if end-of-string reached.
-  dup CASE
-  0   OF drop 32 string-output-char   reset-shift ENDOF
-  1   OF abbreviation reset-shift ENDOF
-  2   OF abbreviation reset-shift ENDOF
-  3   OF abbreviation reset-shift ENDOF
+  dup 255 = IF drop true EXIT THEN \ Bail with TRUE if end-of-string reached.
+  CASE
+  0   OF 32 string-output-char   reset-shift ENDOF
+  1   OF 1 abbreviation reset-shift ENDOF
+  2   OF 2 abbreviation reset-shift ENDOF
+  3   OF 3 abbreviation reset-shift ENDOF
   4   OF 1 shift ! ENDOF
   5   OF 2 shift ! ENDOF
   \ default - alphabet output
-  shift @ alphabets execute ( c )
+  shift @ alphabets @ execute ( c )
   string-output-char ( )
+  reset-shift
+  0 \ dummy for endcase
   ENDCASE
   false \ We haven't run out of string yet.
 ;
 
 : expand-word ( u -- end? )
-  dup           31 and string-expand
-  dup  5 rshift 31 and string-expand
   dup 10 rshift 31 and string-expand
+  dup  5 rshift 31 and string-expand
+  dup           31 and string-expand
   0x8000 and ( done? )
   dup IF 255 string-expand THEN
 ;

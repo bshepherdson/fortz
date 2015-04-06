@@ -73,7 +73,7 @@ variable var-count
     dup >r CASE   ( R: op-num )
     12 OF 2 read-var-args ENDOF
     26 OF 2 read-var-args ENDOF
-    1 read-var-args
+    drop 1 read-var-args 0 ( args... n-args dummy )
     ENDCASE ( args... n-args   R: op-num )
     r> VAROPS @ execute
   ELSE ( op-num ) \ 2OP count
@@ -98,7 +98,7 @@ variable var-count
   CASE
   3 OF variable-form ENDOF
   2 OF short-form    ENDOF
-  long-form
+  long-form 0
   ENDCASE
 ;
 
