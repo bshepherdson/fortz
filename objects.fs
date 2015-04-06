@@ -146,14 +146,13 @@
 
 \ Index of the byte in question.
 : attr-index ( attr -- offset ) 3 rshift ;
-: attr-mask  ( attr -- mask )   3 and 7 swap -  1 swap lshift ;
+: attr-mask  ( attr -- mask )   7 and 7 swap -  1 swap lshift ;
 : attr@ ( attr obj -- ? )
   zobject over attr-index + ( attr ra )
-  swap attr-mask  ( ra mask )
-  b@ and 0<> ( ? )
+  b@   swap attr-mask   and 0<>
 ;
 : attr! ( ? attr obj -- )
-  rot r>                    ( attr ra    R: ? )
+  rot >r                    ( attr ra    R: ? )
   zobject over attr-index + ( attr ra )
   swap attr-mask            ( ra mask )
   over b@                   ( ra mask old )
