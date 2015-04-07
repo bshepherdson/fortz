@@ -55,13 +55,16 @@
 
 \ insert_obj obj destination
 :noname ( dest obj -- )
-  dup object-remove ( dest obj ) \ obj is now parentless.
-  swap zobject dup child relative@ ( obj ra-dest sib )
-  rot ( ra-dest sib obj )
+  over swap dup ( dest dest obj obj )
+  object-remove ( dest dest obj ) \ obj is now parentless.
+  swap zobject dup child relative@ ( dest obj ra-dest sib )
+  rot ( dest ra-dest sib obj )
   dup >r
-  zobject sibling relative! ( ra-dest   R: obj )
-  r> swap
-  child relative! ( )
+  zobject sibling relative! ( dest ra-dest   R: obj )
+  r> dup >r ( dest ra-dest obj   R: obj )
+  swap
+  child relative! ( dest   R: obj )
+  r> zobject parent relative! ( )
 ; 14 2OPS !
 
 

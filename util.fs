@@ -10,3 +10,5 @@
 
 : dump-bytes ( c-addr u -- ) 0 DO dup i + c@ hex. LOOP cr drop ;
 
+VARIABLE log-file
+

@@ -67,6 +67,8 @@ variable var-count
 ;
 
 : variable-form ( opcode -- )
+  \ Special case for variable form @je
+  dup 0xc1 = IF drop 1 read-var-args   var_je EXIT THEN
   dup 31 and swap 32 and ( opcode-number var? )
   IF   ( op-num ) \ VAR count
     \ Special case for the two double-call operations.
@@ -92,9 +94,10 @@ variable var-count
 
 \ Runs a single opcode.
 : execute-op ( -- )
-  \ pc @
+  pc @
   pc@+      ( opcode )
-  \ swap hex. ." : " dup hex. cr
+  swap hex s>d <# #s #> decimal log-file @ WRITE-LINE
+  ABORT" Failed to log PC to log file"
   dup 0xbe =   version 5 >= and IF extended-form EXIT THEN
   \ TODO je special case with variable args.
   dup 6 rshift 3 and ( opcode top-two-bits )
@@ -103,5 +106,6 @@ variable var-count
   2 OF short-form    ENDOF
   drop long-form 0
   ENDCASE
+  depth 0> ABORT" Opcode left junk on the stack"
 ;
 

@@ -41,7 +41,7 @@ defer pa \ Will be filled in after the header is defined (depends on version).
 : pc@ ( -- u ) pc @ b@ ;
 
 \ Adjusts PC by the given amount.
-: pc+ ( n -- ) pc +! ;
+: pc+ ( n -- ) pc @ +   0x7ffff and   pc ! ;
 
 \ Bumps PC by one.
 : pc++ ( -- ) 1 pc+ ;

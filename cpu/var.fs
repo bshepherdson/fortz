@@ -214,7 +214,7 @@
 \ Special case VAR format je.
 \ Branches if a is equal to any of the later values.
 : var_je ( d c b a n -- )
-  dup 1 = IF false zbranch EXIT THEN
+  dup 1 = IF 2drop false zbranch EXIT THEN
   1- -rot ( d c n b a )
   2dup = IF drop swap discard-args   true zbranch EXIT THEN
   nip swap ( d c a n-1 )

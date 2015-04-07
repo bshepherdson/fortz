@@ -66,7 +66,7 @@
     63 and
   ELSE
     63 and 8 lshift pc@+ or ( branch? unsigned-offset )
-    dup 0x2000 and IF 0x2000 swap - THEN \ Adjust for signed offset.
+    dup 0x2000 and IF 0x4000 swap - negate THEN \ Adjust for signed offset.
   THEN
   ( branch? branch-offset )
   swap not IF drop EXIT THEN \ Bail if we're not branching.
@@ -94,7 +94,7 @@
 ;
 
 \ Given a count on top, deletes the count and count more values.
-: discard-args ( ... n -- ) BEGIN dup WHILE nip 1- REPEAT ;
+: discard-args ( ... n -- ) BEGIN dup WHILE nip 1- REPEAT drop ;
 
 
 \ Expects the arguments (first one on top) with the routine address above it,
@@ -106,7 +106,7 @@
 \ address, needs to be done before calling zcall.
 : zcall ( argN ... arg2 arg1 ra-routine n return? -- )
   rot ( args... n ret? routine )
-  dup 0= IF drop IF 0 zstore THEN discard-args EXIT THEN
+  dup 0= IF drop IF 0 zstore THEN 1- discard-args EXIT THEN
   dup b@ ( ... routine local-count )
   \ The new FP will be the old SP minus 2*(locals+1)
   sp @ over 1+ cells - ( ... routine local-count new-fp )

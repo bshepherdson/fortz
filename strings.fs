@@ -292,6 +292,9 @@ CONSTANT a2-table
   2dup >r >r        ( t0 p t l t' l'    R: l' t' ) \ Set aside for later.
   rot               ( t0 p t t' l' l )
   swap -            ( t0 p t t' len )
+
+  2 pick ram over ." Parsed: _" type ." _ length " dup . .s cr
+
   3 pick 2 +        ( t0 p t t' len len-addr )
   2dup b! drop      ( t0 p t t' len )
   >r drop           ( t0 p t     R: l' t' len )

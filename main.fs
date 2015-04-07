@@ -60,6 +60,11 @@ VARIABLE story-file
 \ parse-file-name
 \ restart
 
+: init-logging
+  S" fortz.log" W/O CREATE-FILE ABORT" Failed to open log file" log-file !
+;
+
 \ For testing
-S" etude.z5" load-file restart interp
+init-logging
+S" Zork1.z3" load-file restart interp
 
