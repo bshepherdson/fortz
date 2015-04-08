@@ -257,19 +257,15 @@ CONSTANT a2-table
   2drop 0
 ;
 
-
-\ When finished, the encoded word is in the output-buffer.
-: encode-word ( text len -- )
-  \ Go character-for-character, emitting as many Z-chars as necessary.
-  \ Emitted Z-chars go into the input-buffer.
-  string-reset
-  fill-5s
+: string>zscii ( text len -- )
   0 DO ( text )
     dup I + b@  ( text ascii-char )
     encode-char ( text ) \ Writes Z-chars into input-buffer
   LOOP
   drop ( )
+;
 
+: zscii>zstring ( -- )
   input-buffer
   2 3 3or5 0 DO ( buf )
     build-z-word ( buf' word )
@@ -282,8 +278,15 @@ CONSTANT a2-table
   \ Update the constructed input to have the appropriate end bit.
   \ TODO Is the end flag only set on short words? What about truncated ones?
   2 4 3or5 output-buffer + dup c@ 128 or swap c!
+;
 
-  \ Attempt to find the freshly-parsed word in the dictionary.
+\ When finished, the encoded word is in the output-buffer.
+: encode-word ( text len -- ra-dict )
+  \ Go character-for-character, emitting as many Z-chars as necessary.
+  \ Emitted Z-chars go into the input-buffer.
+  string-reset fill-5s
+  string>zscii
+  zscii>zstring
   dict-lookup ( ra-dict )
 ;
 
