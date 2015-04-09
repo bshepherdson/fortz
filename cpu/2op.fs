@@ -16,7 +16,8 @@
 \ dec_chk (var) value ?(label) - decrement, then jump if < value
 :noname ( val var -- )
   dup var@ ( val var x )
-  1- 2dup swap var! ( val var x )
+  1- 0xffff and
+  2dup swap var! ( val var x )
   nip ( val x )
   signed swap <
   zbranch
@@ -25,9 +26,10 @@
 \ inc_chk (var) value ?(label) - increment, then jump if > value
 :noname ( val var -- )
   dup var@ ( val var x )
-  1+ 2dup swap var! ( val var x )
+  1+ 0xffff and
+  2dup swap var! ( val var x )
   nip ( val x )
-  signed swap >
+  signed swap signed   >
   zbranch
 ; 5 2OPS !
 
