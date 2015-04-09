@@ -146,8 +146,9 @@
   dup 0= IF 2drop EXIT THEN
   \ Now store my sibling into that field.
   over sibling relative@ swap relative! ( this )
-  \ And remove my parent.
-  0 swap   parent relative!
+  \ And remove my parent and sibling.
+  0 over   sibling relative!
+  0 swap   parent  relative!
 ;
 
 
