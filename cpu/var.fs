@@ -39,6 +39,7 @@
   \ Slightly hacky, since I'm asking Forth to write into the Z-machine's buffer.
   ba dup 1+ ram over b@ ( parse text c-addr maxlen )
   2dup accept           ( parse text c-addr maxlen len )
+  cr
   nip 2dup lower-case   ( parse text c-addr len )
   \ Write 0 terminator. c! not b!, this is a real Forth address.
   2dup + 0 swap c!   ( parse text c-addr len )

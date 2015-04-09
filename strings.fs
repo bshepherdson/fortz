@@ -257,14 +257,6 @@ CONSTANT a2-table
   2drop 0
 ;
 
-: string>zscii ( text len -- )
-  0 DO ( text )
-    dup I + b@  ( text ascii-char )
-    encode-char ( text ) \ Writes Z-chars into input-buffer
-  LOOP
-  drop ( )
-;
-
 : zscii>zstring ( -- )
   input-buffer
   2 3 3or5 0 DO ( buf )
@@ -280,92 +272,79 @@ CONSTANT a2-table
   2 4 3or5 output-buffer + dup c@ 128 or swap c!
 ;
 
-\ When finished, the encoded word is in the output-buffer.
-: encode-word ( text len -- ra-dict )
-  \ Go character-for-character, emitting as many Z-chars as necessary.
-  \ Emitted Z-chars go into the input-buffer.
+VARIABLE zm-parse   \ Current position in the user-provided parse buffer.
+VARIABLE zm-input   \ Start of the word currently under consideration.
+VARIABLE zm-input-0 \ Start of the input buffer, for computing offsets.
+
+: parse-record-dict     ( -- ra-dict-field )     zm-parse @ ;
+: parse-record-position ( -- ra-position-field ) zm-parse @ 3 + ;
+: parse-record-length   ( -- ra-length-field )   zm-parse @ 2 + ;
+
+: zm-input-pos ( -- offset ) zm-input @   zm-input-0 @   - ;
+
+: ascii>zscii ( -- )
+  \ Moves an ASCII character from zm-input to ZSCII characters in input-buffer.
+  zm-input @ b@   encode-char
+  1 zm-input +!
+;
+
+: find-non-whitespace ( text-len -- text-len' )
+  BEGIN dup 0>   zm-input @ b@   32 =   and
+  WHILE 1-   1 zm-input +!  REPEAT
+;
+
+: parse-word ( text-len -- text-len' )
+  \ Go until we run out of string or hit a separator, copying to input-buffer.
   string-reset fill-5s
-  string>zscii
-  zscii>zstring
-  dict-lookup ( ra-dict )
-;
-
-
-: word-found ( t0 p t l t' l' -- t0 p' t' l' )
-  2dup >r >r        ( t0 p t l t' l'    R: l' t' ) \ Set aside for later.
-  rot               ( t0 p t t' l' l )
-  swap -            ( t0 p t t' len )
-
-  2 pick ram over ." Parsed: _" type ." _ length " dup . .s cr
-
-  3 pick 2 +        ( t0 p t t' len len-addr )
-  2dup b! drop      ( t0 p t t' len )
-  >r drop           ( t0 p t     R: l' t' len )
-  2 pick            ( t0 p t t0  R: l' t' len )
-  2dup -            ( t0 p t t0 t_i   R: l' t' len )
-  3 pick            ( t0 p t t0 t_i p R: l' t' len )
-  3 + b!            ( t0 p t t0       R: l' t' len )
-  drop r>           ( t0 p t len      R: l' t' )
-  2dup encode-word  ( t0 p len ra-word   R: l' t' )
-  >r 2drop r>       ( t0 p ra-word         R: l' t' )
-  over              ( t0 p ra-word p       R: l' t' )
-  w!                ( t0 p                 R: l' t' )
-  4 + r> r>         ( t0 p' t' l' )
-;
-
-: parse-word ( text0 parse text len -- text0 parse' text' len' )
-  \ Read the next word into the parse buffer.
-  \ First, advance text until we're at the next non-whitespace character.
-  \ Whitespace is actually just spaces. No tabs etc.
+  \ Write the starting position into its parse buffer.
+  zm-input-pos  1+ parse-record-position b!
+  dup ( start-len current-len )
   BEGIN
-    dup 0= IF EXIT THEN \ Bail if the text buffer runs out.
-    over b@ 32 = ( t0 p t l space? )
+    dup 0>
+    zm-input @ b@   sep-or-space? not
+    and
   WHILE
-    1+ swap 1+ swap
+    1-   ascii>zscii
   REPEAT
+  swap over - ( len' delta )
+  parse-record-length b! ( len' )
+  zscii>zstring \ output buffer is now loaded
+  dict-lookup parse-record-dict w! \ and looked up in the dictionary
+;
 
-  \ Now text points at a real character.
-  \ Check if it's a separator first, that's a special case.
-  over b@ dict-separator? IF
-    2dup 1- swap 1+ swap ( t0 p t l t' l' )
-    word-found           ( t0 p' t' l' )
-    EXIT
+: parse-single-delimiter ( text-len -- text-len' )
+  string-reset fill-5s
+  zm-input-pos  parse-record-position b!
+  1 parse-record-length b!
+  ascii>zscii
+  1-
+;
+
+: locate-word ( text-len -- text-len' )
+  find-non-whitespace
+  dup not IF EXIT THEN \ Bail when no string left.
+  zm-input @ b@   dict-separator? IF
+    \ Special case: when this word is a separator, parse just it.
+    parse-single-delimiter
+  ELSE
+    \ Normal case: parse a word, up to space, a separator, or EOL.
+    parse-word
   THEN
-
-  \ Read forward past the string, saving its start location.
-  2dup         ( t0 p t l t' l' )
-  BEGIN
-    2dup 0 = ( ... t' end? )
-    not IF b@ sep-or-space? not ELSE drop false THEN
-    ( keep-searching? )
-  WHILE
-    1- swap 1+ swap ( t0 p t l t' l' )
-  REPEAT
-
-  \ When we get down here, l' is the new length and t' is the address AFTER
-  \ the word ends. Write that into the parse buffer.
-  word-found ( t0 p' t' l' )
+  4 zm-parse +!
 ;
-
-
 
 \ Read the words and write parse data for them.
-\ Reads from the text buffer and stores encoded Z-characters into PAD.
-\ parse points at the beginning of the parse buffer, which contains
-\ a byte for the max words, a byte of present words (to set) and 4 bytes per
-\ word it has room for.
-\ Text points at the start of the text (since it differs by version).
-\ Len gives the number of words not including the terminator.
 : parse-line ( parse text len -- )
-  \ Save parse for later, and bump the one on the stack to the first record.
-  \ Likewise, copy text to produce t0, the start of the text.
-  >r tuck r> ( text0 parse text len )
-  rot dup >r 2 + -rot ( text0 parse' text len   R: parse )
-  BEGIN dup WHILE parse-word REPEAT
-  ( text0 parse' text 0 )
-  2drop r> swap ( text0 parse parse' )
-  over 2 + -    ( text0 parse delta-bytes )
-  2 rshift      ( text0 parse words-parsed )
-  swap 1+ b!    ( text0 )
+  >r
+  dup zm-input !   zm-input-0 ! ( parse )
+  \ Store the first parse result's address, but save the start for later.
+  dup 2 + zm-parse !
+  r> ( parse0 len )
+  BEGIN dup WHILE locate-word REPEAT
+  drop ( parse0 )
+
+  zm-parse @ ( parse0 parse-end )
+  over 2 + -   2 rshift   ( parse0 parse-end )
+  over 1+ b! \ Write number of words parsed.
   drop ( )
 ;
