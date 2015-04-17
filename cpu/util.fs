@@ -143,4 +143,5 @@
   \ Now all the pointers should be set up properly.
 ;
 
-
+\ Implements the Z-machine checksum algorithm.
+: checksum ( -- u ) 0   story-file-size 0x40 DO i b@ + LOOP   0xffff and ;

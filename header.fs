@@ -40,6 +40,14 @@
 : 3or5 ( x y -- x-or-y ) version 3 > IF nip ELSE drop THEN ;
 
 
+create story-size-multipliers 2 c, 2 c, 2 c, 4 c, 4 c, 8 c, 8 c, 8 c, ALIGN
+
+\ Size of the file in bytes. The header word multiplied by a constant.
+: story-file-size ( -- u )
+  version 1- story-size-multipliers + c@ ( multiplier )
+  hdr-file-size w@ * ( size )
+;
+
 \ Sets the various flag bits for this interpreter.
 : init-header-bits ( -- )
   version 3 <= IF \ Set up flags 1 for early versions.
