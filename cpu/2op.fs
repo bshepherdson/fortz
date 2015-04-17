@@ -102,8 +102,6 @@ VARIABLE line-ptr
 
 \ insert_obj obj destination
 :noname ( dest obj -- )
-  ." insert_obj at " pc @ hex.
-  pc @ 0x91c7 = IF S" before.log" dump break" insert_obj" THEN
   over swap dup ( dest dest obj obj )
   object-remove ( dest dest obj ) \ obj is now parentless.
   swap zobject dup child relative@ ( dest obj ra-dest sib )
@@ -114,7 +112,6 @@ VARIABLE line-ptr
   swap
   child relative! ( dest   R: obj )
   r> zobject parent relative! ( )
-  pc @ 0x91c7 = IF S" after.log" dump THEN
 ; 14 2OPS !
 
 
