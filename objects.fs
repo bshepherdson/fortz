@@ -115,12 +115,11 @@
 \ Returns 0 if the child is not found.
 : find-child ( ra-this target -- ra-relative )
   over child ( this target ra-child )
-  dup >r     ( this target ra-child   R: ra-child )
-  relative@ ( this target child   R: ra-child )
-  dup 0= IF r> 2drop 2drop ( ) 0 EXIT THEN
-  over = IF ( this target ) 2drop r> EXIT THEN
-  ( this target   R: ra-child )
-  swap drop r>  ( target new-this )
+  relative@  ( this target child )
+  dup 0= IF drop 2drop ( ) 0 EXIT THEN
+  2dup = IF 2drop child EXIT THEN
+  rot drop ( target child )
+  zobject  ( target ra-this )
   \ Follow the sibling chain until we find it.
   swap ( this target )
   BEGIN
@@ -138,11 +137,12 @@
 \ Removes the given object (by number) from the tree, so it is parentless.
 \ Find the parent, walk the children.
 : object-remove ( num -- )
+  \ dup 110 = IF break" object-remove for 110" THEN
   dup zobject dup parent relative@ ( num this parent )
   dup 0= IF drop 2drop EXIT THEN \ Bail if the parent is not set.
   zobject ( num this ra-parent )
-  rot swap ( this num ra-parent )
-  swap find-child ( this ra-relative )
+  rot ( this ra-parent num )
+  find-child ( this ra-relative )
   dup 0= IF 2drop EXIT THEN
   \ Now store my sibling into that field.
   over sibling relative@ swap relative! ( this )
