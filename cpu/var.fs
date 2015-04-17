@@ -22,31 +22,47 @@
 
 
 
-\ Converts the given string to lowercase (ASCII only).
-: lower-case ( c-addr len -- )
-  over + swap ?DO
-    i c@ dup 65 91 within IF
-      32 + i c!
-    ELSE drop THEN
+\ Converts a character to lowercase.
+: lower-case ( c -- c ) dup 65 91 within IF 32 + THEN ;
+
+
+create read-buffer 256 allot align
+256 allot align
+
+: read-debug ( parse -- )
+  dup 1+ b@  ( parse words )
+  0 DO
+    dup 2 + i 2 lshift + ( parse addr )
+    ." Parsed: "
+    dup w@ hex.
+    dup 2 + b@ hex.
+    3 + b@ hex.
+    CR
   LOOP
+  drop
 ;
 
 
+: zaccept ( text -- len )
+  read-buffer over b@ ( text buf maxlen )
+  accept              ( text len )
+  dup >r
+  0 DO read-buffer i + c@   lower-case   over i + 1+ b! LOOP
+  drop r> ( len )
+;
 
 : v3read ( parse text 2 -- )
   drop ( parse text )
   print-v3-status
-  \ Slightly hacky, since I'm asking Forth to write into the Z-machine's buffer.
-  ba dup 1+ ram over b@ ( parse text c-addr maxlen )
-  2dup accept           ( parse text c-addr maxlen len )
-  cr
-  nip 2dup lower-case   ( parse text c-addr len )
-  \ Write 0 terminator. c! not b!, this is a real Forth address.
-  2dup + 0 swap c!   ( parse text c-addr len )
-  nip                ( parse text len )
 
-  \ Only parse if the parse buffer is nonzero.
-  >r over IF 1+ r> parse-line ELSE r> drop 2drop THEN
+  \ Read into read-buffer, then copy into the Z-machine.
+  dup zaccept ( parse text len )
+  cr
+
+  >r 1+ r>         \ Bump text to the first character.
+  2dup + 0 swap b! \ Write the 0-terminator.
+
+  2 pick IF parse-line ELSE drop 2drop THEN
 ;
 
 : v4read ( routine time parse text n-args -- )
