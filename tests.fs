@@ -22,7 +22,24 @@
 ;
 
 
+: test-dump-children ( obj -- )
+  ." Children of object " dup . ." : "
+  zobject child relative@
+  BEGIN ( child# )
+    dup 0<>
+  WHILE
+    dup .
+    zobject sibling relative@
+  REPEAT
+  cr
+;
+
 : test-obj-insert ( -- )
+  ." This test moves object 89 from its original parent 88 to 94." cr
+  89 test-dump-children
+  88 test-dump-children
+  94 test-dump-children
+
   88 zobject  89  find-child not ABORT" 89 starts as a child of 88"
   94 zobject child relative@ ( child-94-pre )
   94 89   14 2OPS @ execute
@@ -30,9 +47,14 @@
   94 zobject child relative@  89 <> ABORT" Post-insert child of 94 should be 89"
   89 zobject sibling relative@   <>
       ABORT" Post-insert sibling of 89 should match pre-insert child of 94"
+  89 zobject parent relative@ 94 <> ABORT" Post-insert parent of 89 must be 94"
 
   88 zobject 89 find-child
       ABORT" Post-insert, 89 should be gone from the children of 88"
+  ." Move complete. 89 should be gone from 88 and attached to 94." cr
+  89 test-dump-children
+  88 test-dump-children
+  94 test-dump-children
 ;
 
 : test-objects ( -- )
