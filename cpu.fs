@@ -94,9 +94,14 @@ variable var-count
 
 \ Runs a single opcode.
 : execute-op ( -- )
+  checksum
   pc @
-  pc@+      ( opcode )
-  swap hex s>d <# #s #> decimal log-file @ WRITE-LINE
+  pc@+
+
+  ( checksum pc opcode )
+  -rot ( opcode checksum pc )
+  s>d rot s>d ( opcode pc 0 checksum 0 )
+  hex <# #s 2drop 32 hold #s #> decimal log-file @ WRITE-LINE
   ABORT" Failed to log PC to log file"
   dup 0xbe =   version 5 >= and IF extended-form EXIT THEN
   \ TODO je special case with variable args.
