@@ -131,7 +131,7 @@ VARIABLE line-ptr
 \ When given a property number of 0, finds the first property.
 \ Returns 0 for no next property.
 :noname ( prop obj -- )
-  over 0= IF zobject prop-table prop-number zstore 2drop EXIT THEN
+  over 0= IF zobject prop-table prop-number zstore drop EXIT THEN
   prop-find prop-next prop-number zstore
 ; 19 2OPS !
 
