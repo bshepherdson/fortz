@@ -55,8 +55,55 @@
 \ store (var) value
 :noname ( value var -- ) var! ; 13 2OPS !
 
+
+VARIABLE dump-number
+1 dump-number !
+
+create line-buffer 256 allot
+VARIABLE line-ptr
+
+: char>line ( c -- ) line-ptr @   c!  1 line-ptr +! ;
+
+: str>line ( caddr len -- )
+  line-ptr @ swap ( src dest len )
+  dup line-ptr +! ( src dest len )
+  cmove
+;
+
+: dump-address ( ra -- ) s>d <# [char] : hold   # # # # # #> str>line ;
+
+: dump-word ( ra -- ) w@ s>d <# 32 hold   # # # # #> str>line ;
+
+: dump-line ( fileid ra -- )
+  line-buffer line-ptr !
+  dup dump-address
+  dup 16 + swap ( fileid end start )
+  DO ( fileid )
+    i dump-word
+  2 +LOOP ( fileid )
+
+  line-buffer
+  line-ptr @   line-buffer  - ( fileid c-addr len )
+  rot ( c-addr len fileid )
+  write-line abort" Failed to write dump line" ( )
+;
+
+
+\ Given a filename, dumps the complete Z-machine memory to it.
+: dump ( c-addr len -- )
+  w/o CREATE-FILE throw ( fileid )
+  HEX
+  0x14000 0 DO
+    dup i dump-line
+  0x10 +LOOP
+  DECIMAL
+  CLOSE-FILE ABORT" Failed to close dump file" ( )
+;
+
 \ insert_obj obj destination
 :noname ( dest obj -- )
+  ." insert_obj at " pc @ hex.
+  pc @ 0x91c7 = IF S" before.log" dump break" insert_obj" THEN
   over swap dup ( dest dest obj obj )
   object-remove ( dest dest obj ) \ obj is now parentless.
   swap zobject dup child relative@ ( dest obj ra-dest sib )
@@ -67,6 +114,7 @@
   swap
   child relative! ( dest   R: obj )
   r> zobject parent relative! ( )
+  pc @ 0x91c7 = IF S" after.log" dump THEN
 ; 14 2OPS !
 
 
