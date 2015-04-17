@@ -58,6 +58,7 @@
 \ Given the base condition, adjusts for possible negation, then branches if
 \ the branch should be taken.
 : zbranch ( ? -- )
+  0<> \ Make sure the flag is a real flag, not a value.
   pc@+ ( ? branch-hi )
   \ Invert flag if bit 7 is 0.
   dup 128 and not IF >r not r> THEN ( branch? branch-hi )
