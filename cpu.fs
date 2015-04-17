@@ -94,7 +94,7 @@ variable var-count
 
 \ Runs a single opcode.
 : execute-op ( -- )
-  checksum
+  0 \ fake-checksum
   pc @
   pc@+
 
