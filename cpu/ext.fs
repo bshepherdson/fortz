@@ -4,14 +4,10 @@
 30 array EXTOPS
 
 \ save table bytes name prompt -> (result)
-\ TODO Implement save properly.
-\ This version simply fails.
-:noname discard-args 0 zstore ; 0 EXTOPS !
+:noname discard-args save-game 1 zstore ; 0 EXTOPS !
 
 \ restore table bytes name prompt -> (result)
-\ TODO Implement restore properly.
-\ This version simply fails.
-:noname discard-args 0 zstore ; 1 EXTOPS !
+:noname discard-args restore-game 2 zstore ; 1 EXTOPS !
 
 
 \ log_shift number places -> (result)

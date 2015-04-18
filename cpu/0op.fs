@@ -16,20 +16,29 @@
 \ nop
 :noname ; 4 0OPS !
 
+: dump-pointers ( -- )
+  ." PC: " pc @ hex. cr
+  ." SP: " sp @ hex.   stack-top sp @ - . cr
+  ." FP: " fp @ hex. cr
+;
+
 \ save (V1-3: save ?(label), V4: save and store, V5 illegal)
 :noname
-  ." [Saving not implemented]" cr
   version
   dup 5 >= IF ." [Illegal opcode: save in v5]" cr BYE THEN
-      4 >= IF 0 zstore ELSE false zbranch THEN
+  \ quit
+  save-game
+  4 >= IF 1 zstore ELSE true zbranch THEN
 ; 5 0OPS !
 
 \ restore (similar to save)
+\ TODO Preserve the transcription and fixed-width-font bits.
 :noname
-  ." [Saving not implemented]" cr
-  version
-  dup 5 >= IF ." [Illegal opcode: restore in v5]" cr BYE THEN
-      4 >= IF 0 zstore ELSE false zbranch THEN
+  version 5 >= IF ." [Illegal opcode: restore in v5]" cr BYE THEN
+
+  restore-game \ State is now loaded, including PC.
+  cr
+  version 4 >= IF 2 zstore ELSE true zbranch THEN
 ; 6 0OPS !
 
 

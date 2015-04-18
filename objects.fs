@@ -137,7 +137,6 @@
 \ Removes the given object (by number) from the tree, so it is parentless.
 \ Find the parent, walk the children.
 : object-remove ( num -- )
-  \ dup 110 = IF break" object-remove for 110" THEN
   dup zobject dup parent relative@ ( num this parent )
   dup 0= IF drop 2drop EXIT THEN \ Bail if the parent is not set.
   zobject ( num this ra-parent )

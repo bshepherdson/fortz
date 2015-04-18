@@ -131,8 +131,9 @@
   \ Save the return-expectation too.
   expected-return ! ( args... n )
 
-  \ The new SP is four cells lower than the new FP.
-  fp @ 4 cells - sp !
+  \ The new SP is three cells lower than the new FP.
+  \ That is, it points at the expected return, which is at fp-3.
+  fp @ 3 cells - sp !
 
   \ Note that N is one greater than the number of arguments. Perfect, since
   \ locals are numbersed from 1.

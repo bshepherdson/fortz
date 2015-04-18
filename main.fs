@@ -6,7 +6,7 @@ VARIABLE breakpoint
 
 \ Main interpreter loop.
 : interp ( -- )
-  BEGIN breakpoint @ pc @ = IF dbg execute-op ELSE execute-op THEN AGAIN
+  BEGIN execute-op AGAIN
 ;
 
 VARIABLE story-file
