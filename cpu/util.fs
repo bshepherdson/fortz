@@ -35,6 +35,10 @@
 \ old-pc
 \ return-expected <--- sp
 
+\ NB: In order to make save files portable between runs of the emulator,
+\ the real pointers (old SP and FP) need to be relative to stack-top, not
+\ raw.
+
 \ Address where the old value is stored.
 : old-FP ( -- a-addr ) fp @ ;
 : old-SP ( -- a-addr ) fp @ 1 cells - ;
@@ -48,8 +52,8 @@
   expected-return @ ( ret-value ret? )
   \ Then restore the old PC, SP and FP, in that order (FP has to be last).
   old-PC @ pc !
-  old-SP @ sp !
-  old-FP @ fp !
+  stack-top   old-SP @   -  sp !
+  stack-top   old-FP @   -  fp !
   ( ret-value ret? )
   IF zstore ELSE drop THEN
 ;
@@ -111,13 +115,13 @@
   dup b@ ( ... routine local-count )
   \ The new FP will be the old SP minus 2*(locals+1)
   sp @ over 1+ cells - ( ... routine local-count new-fp )
-  fp @ over ! \ Store the old fp into the new fp.
+  stack-top fp @ -   over ! \ Store the old fp into the new fp.
   \ And the new fp value into the variable.
   fp !    ( ... routine local-count )
   \ Store the old PC too, because I'm about to mangle it.
   pc @ old-PC !
   \ And SP too because it's fine whenever.
-  sp @ old-SP !
+  stack-top sp @ -   old-SP !
   version 4 <= IF \ Copy the default locals into their new home.
     \ Compute the new PC and store it now.
     2dup 2 * 1 + + pc ! ( ... routine local-count )
