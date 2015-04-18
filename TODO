@@ -1,3 +1,6 @@
+Basics:
+- Don't choke on empty savegame file names, or empty input line.
+
 Quetzal saves:
 - Implement Quetzal format, first of all.
 - Also fix the throw/catch format as specified; currently it's portable between

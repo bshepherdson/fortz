@@ -47,7 +47,7 @@ create read-buffer 256 allot align
   read-buffer over b@ ( text buf maxlen )
   accept              ( text len )
   dup >r
-  0 DO read-buffer i + c@   lower-case   over i + 1+ b! LOOP
+  0 ?DO read-buffer i + c@   lower-case   over i + 1+ b! LOOP
   drop r> ( len )
 ;
 
