@@ -104,7 +104,6 @@ variable var-count
   hex <# #s 2drop 32 hold #s #> decimal log-file @ WRITE-LINE
   ABORT" Failed to log PC to log file"
   dup 0xbe =   version 5 >= and IF extended-form EXIT THEN
-  \ TODO je special case with variable args.
   dup 6 rshift 3 and ( opcode top-two-bits )
   CASE
   3 OF variable-form ENDOF

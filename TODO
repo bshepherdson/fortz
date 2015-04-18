@@ -1,0 +1,41 @@
+Quetzal saves:
+- Implement Quetzal format, first of all.
+- Also fix the throw/catch format as specified; currently it's portable between
+  runs of my emulator (offset of FP relative to stack-top) but not between
+  emulators.
+
+Terminal fanciness:
+- v3 status lines and ops to implement them.
+- various colour and terminal-control opcodes.
+- fonts? terminals usually don't have italic, sometimes bold though. I should
+  "support" fixed width as well. not sure what others it can do. reverse video?
+- Set default colours in the header, once I know them.
+- Support accented characters from the base set. Nasty mapping; lift from Hork.
+
+Advanced terminal fanciness:
+- Unicode
+- True colour support
+
+Input:
+- Terminating character list. Not sure how much is required there.
+- Support partly-filled input buffers - redisplaying and such.
+- Timer interrupts for reading
+- Header can specify custom alphabet tables in v5+.
+- Versions 1 and 2 are actually broken because I don't handle the different
+  A2 table they use, and the single shift vs. shift lock style.
+
+
+Misc. advanced ops
+- verify opcode - almost identical with my checksum I already built?
+- tokenize - requires calling into dictionary logic. Straightforward?
+- encode_text - likewise, calling existing string functions
+- print_table - fancy cursor support needed? Don't think so.
+- check_arg_count - requires modifying call stack handlers.
+- 
+
+Misc. cleanup
+- Transcription and fixed-width-font bits on restart. Harmless if the font is
+  always fixed.
+- More efficient object version-dependent functions based on VALUEs.
+- Randomizer with predictable mode. Not needed, just a debug helper.
+

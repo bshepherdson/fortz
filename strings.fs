@@ -268,7 +268,6 @@ CONSTANT a2-table
   drop
 
   \ Update the constructed input to have the appropriate end bit.
-  \ TODO Is the end flag only set on short words? What about truncated ones?
   2 4 3or5 output-buffer + dup c@ 128 or swap c!
 ;
 

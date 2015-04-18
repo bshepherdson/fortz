@@ -43,8 +43,6 @@
 
 
 \ restart - no prompting, just do it.
-\ TODO Maybe empty the stacks here so that the interpreter doesn't use them
-\ up across multiple restarts.
 :noname restart ; 7 0OPS !
 
 
