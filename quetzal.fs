@@ -76,8 +76,13 @@ VARIABLE save-ptr
 
 here CONSTANT save-file 256 allot
 : request-file-name ( -- c-addr u )
-  S" Save file name: " type
-  save-file 255 accept ( len )
+  BEGIN
+    ." Save file name: "
+    save-file 255 accept ( len )
+    dup 0=
+  WHILE
+    drop ." Please enter a valid filename." cr
+  REPEAT
   save-file swap
 ;
 : save-game ( -- )    request-file-name write-save-file ;
