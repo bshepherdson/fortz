@@ -16,7 +16,7 @@
 \ dec_chk (var) value ?(label) - decrement, then jump if < value
 :noname ( val var -- )
   dup var@ ( val var x )
-  1- 0xffff and
+  1- $ffff and
   2dup swap var! ( val var x )
   nip ( val x )
   signed swap <
@@ -26,7 +26,7 @@
 \ inc_chk (var) value ?(label) - increment, then jump if > value
 :noname ( val var -- )
   dup var@ ( val var x )
-  1+ 0xffff and
+  1+ $ffff and
   2dup swap var! ( val var x )
   nip ( val x )
   signed swap signed   >
@@ -93,9 +93,9 @@ VARIABLE line-ptr
 : dump ( c-addr len -- )
   w/o CREATE-FILE throw ( fileid )
   HEX
-  0x14000 0 DO
+  $14000 0 DO
     dup i dump-line
-  0x10 +LOOP
+  $10 +LOOP
   DECIMAL
   CLOSE-FILE ABORT" Failed to close dump file" ( )
 ;
@@ -137,7 +137,7 @@ VARIABLE line-ptr
 
 
 : math( ( ub ua -- a b ) signed swap signed ;
-: math) ( res -- ) 0xffff and zstore ;
+: math) ( res -- ) $ffff and zstore ;
 
 \ add a b -> (result), sub, mul, div and mod.
 :noname ( b a -- ) math( + math) ; 20 2OPS !

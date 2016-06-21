@@ -68,7 +68,7 @@ variable var-count
 
 : variable-form ( opcode -- )
   \ Special case for variable form @je
-  dup 0xc1 = IF drop 1 read-var-args   var_je EXIT THEN
+  dup $c1 = IF drop 1 read-var-args   var_je EXIT THEN
   dup 31 and swap 32 and ( opcode-number var? )
   IF   ( op-num ) \ VAR count
     \ Special case for the two double-call operations.
@@ -86,7 +86,7 @@ variable var-count
 
 
 \ Extended form is almost the same as (the simple case of) variable form.
-: extended-form ( opcode=0xbe -- )
+: extended-form ( opcode=$be -- )
   drop pc@+ >r  ( R: ext-opcode )
   1 read-var-args ( args... n-args   R: ext-opcode )
   r> EXTOPS @ execute
@@ -103,7 +103,7 @@ variable var-count
   s>d rot s>d ( opcode pc 0 checksum 0 )
   hex <# #s 2drop 32 hold #s #> decimal log-file @ WRITE-LINE
   ABORT" Failed to log PC to log file"
-  dup 0xbe =   version 5 >= and IF extended-form EXIT THEN
+  dup $be =   version 5 >= and IF extended-form EXIT THEN
   dup 6 rshift 3 and ( opcode top-two-bits )
   CASE
   3 OF variable-form ENDOF

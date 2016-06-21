@@ -8,6 +8,12 @@
 
 : not ( ? -- ? ) 0= ;
 
+: hex. base @ >R hex . R> base ! ;
+
+: d>s drop ;
+
+: cmove move ;
+
 : dump-bytes ( c-addr u -- ) 0 DO dup i + c@ hex. LOOP cr drop ;
 
 VARIABLE log-file

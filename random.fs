@@ -14,7 +14,7 @@ VARIABLE increment
 12345 CONSTANT real-increment
 real-increment increment !
 
-0x7fffffff CONSTANT modulus-mask
+$7fffffff CONSTANT modulus-mask
 
 VARIABLE previous-value
 
@@ -22,7 +22,7 @@ VARIABLE previous-value
   \ TODO Add predictable mode as suggested by the Standard section 2.4.
   \ dup 1000 < IF 1 multiplier ! 1 increment ! 0 previous-value !
 
-: true-seed ( -- ) utime ( dtime ) seed drop ;
+: true-seed ( -- ) utime ( dtime ) drop seed ;
 true-seed
 
 \ Produces the next number in the series.

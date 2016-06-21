@@ -20,7 +20,7 @@ VARIABLE story-file
 \ Loads the story file from disk into memory.
 \ Illegal to call when the story-file is not a valid, open fileid.
 : reload-file ( -- )
-  0 ram ( c-addr )
+  ram ( c-addr )
   story-file @ FILE-SIZE ABORT" Failed to read file size" ( c-addr dsize )
   d>s ( c-addr size ) \ We can assume the files are not > 4GB!
 

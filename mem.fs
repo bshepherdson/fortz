@@ -22,8 +22,8 @@ defer pa \ Will be filled in after the header is defined (depends on version).
 \ strings. Implement them if I ever start caring about those versions.
 
 
-: b@ ( ra -- u ) ram c@ ;
-: b! ( u ra -- ) swap 255 and swap ram c! ;
+: b@ ( ra -- u ) ram + c@ ;
+: b! ( u ra -- ) >R 255 and R> ram + c! ;
 : w@ ( ra -- u )
   dup b@ 8 lshift ( ra hi )
   swap 1+ b@ or
@@ -33,15 +33,16 @@ defer pa \ Will be filled in after the header is defined (depends on version).
   1+ swap 255 and swap b!
 ;
 
-\ Converts an unsigned 16-bit value into a signed 32-bit one usable in Forth.
-: signed ( u -- n ) dup 0x8000 and IF 0xffff0000 or THEN ;
+\ Converts an unsigned 16-bit value into a signed cell-size one usable in Forth.
+-1 $ffff invert and CONSTANT negation-mask
+: signed ( u -- n ) dup $8000 and IF negation-mask or THEN ;
 
 
 \ Reads the byte under PC. DOES NOT advance it.
 : pc@ ( -- u ) pc @ b@ ;
 
 \ Adjusts PC by the given amount.
-: pc+ ( n -- ) pc @ +   0x7ffff and   pc ! ;
+: pc+ ( n -- ) pc @ +   $7ffff and   pc ! ;
 
 \ Bumps PC by one.
 : pc++ ( -- ) 1 pc+ ;

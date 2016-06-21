@@ -7,8 +7,8 @@
 ;
 
 : test-obj-prop-table ( -- )
-  88 zobject prop-table-addr   0x1371 <> ABORT" Wrong property table address"
-  88 zobject prop-table        0x137a <> ABORT" Wrong first property address"
+  88 zobject prop-table-addr   $1371 <> ABORT" Wrong property table address"
+  88 zobject prop-table        $137a <> ABORT" Wrong first property address"
   88 zobject short-name   parse-string   S" Up a Tree" str= not
       ABORT" Wrong short name"
 ;

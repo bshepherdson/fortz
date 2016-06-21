@@ -3,7 +3,7 @@
 \ Expects the local number from 1 to 15. Returns the Forth address to use.
 : local ( n -- a-addr ) cells fp @ + ;
 : local@ ( n -- value ) local @ ;
-: local! ( value n -- ) >r 0xffff and r>  local ! ;
+: local! ( value n -- ) >r $ffff and r>  local ! ;
 
 \ Expects the global number from 16 to 255. Returns the Z-machine ra of it.
 : global ( n -- ra ) 16 - 2 * ( offset ) hdr-globals w@ + ( ra ) ;
@@ -71,7 +71,7 @@
     63 and
   ELSE
     63 and 8 lshift pc@+ or ( branch? unsigned-offset )
-    dup 0x2000 and IF 0x4000 swap - negate THEN \ Adjust for signed offset.
+    dup $2000 and IF $4000 swap - negate THEN \ Adjust for signed offset.
   THEN
   ( branch? branch-offset )
   swap not IF drop EXIT THEN \ Bail if we're not branching.
@@ -149,4 +149,4 @@
 ;
 
 \ Implements the Z-machine checksum algorithm.
-: checksum ( -- u ) 0   story-file-size 0x40 DO i b@ + LOOP   0xffff and ;
+: checksum ( -- u ) 0   story-file-size $40 DO i b@ + LOOP   $ffff and ;

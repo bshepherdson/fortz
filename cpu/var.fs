@@ -79,7 +79,7 @@ create read-buffer 256 allot align
 : v5read ( routine time parse text n-args -- )
   >r \ Set aside the arg count.
   \ Slightly hacky, since I'm asking Forth to write into the Z-machine's buffer.
-  ba dup 2 + ram over b@ ( parse text c-addr maxlen )
+  ba dup 2 + ram + over b@ ( parse text c-addr maxlen )
   2dup accept           ( parse text c-addr maxlen len )
   nip 2dup lower-case   ( parse text c-addr len )
   nip                   ( parse text len )
@@ -170,7 +170,7 @@ create read-buffer 256 allot align
 \ scan_table x table len opt_form -> (result) (?label)
 :noname ( opt_form len table x n -- )
   dup 3 = IF \ No form, add it.
-    >r >r >r >r 0x82 r> r> r> r>
+    >r >r >r >r $82 r> r> r> r>
   THEN
   drop
   ( form len table x )
@@ -192,7 +192,7 @@ create read-buffer 256 allot align
 
 
 \ not value -> (result)
-:noname ( value 1 -- ) drop invert 0xffff and zstore ; 24 VAROPS !
+:noname ( value 1 -- ) drop invert $ffff and zstore ; 24 VAROPS !
 
 \ call_vn routine args...
 :noname ( args... routine n -- ) swap pa swap   false zcall ; 25 VAROPS !
@@ -212,9 +212,9 @@ create read-buffer 256 allot align
 :noname ( size second first 3 -- )
   drop
   \ If second is 0, write 0s to first.
-  over 0= IF ( size second first ) nip swap ba ram erase EXIT THEN
+  over 0= IF ( size second first ) nip swap ba ram + erase EXIT THEN
   \ Convert both addresses to absolute Forth addresses.
-  ba ram swap ba ram
+  ba ram + swap ba ram +
   rot ( first second size )
   dup 0< IF negate cmove ELSE move THEN
 ; 29 VAROPS !

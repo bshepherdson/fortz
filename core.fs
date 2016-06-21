@@ -1,7 +1,7 @@
 \ Central structures and components of the Z-machine.
 
 \ Maximum size of the memory is 512KB. Reserve that now.
-524288 carray ram
+here 524288 allot CONSTANT ram
 
 \ Stores the real Z-machine address for PC.
 VARIABLE pc

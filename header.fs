@@ -1,34 +1,34 @@
 \ Header constants
 
 \ Real Z-machine addresses for each part of the header.
-0x00 CONSTANT hdr-version
-0x01 CONSTANT hdr-flags1
-0x04 CONSTANT hdr-himem
-0x06 CONSTANT hdr-init-pc
-0x08 CONSTANT hdr-dictionary
-0x0a CONSTANT hdr-objtable
-0x0c CONSTANT hdr-globals
-0x0e CONSTANT hdr-static-mem
-0x10 CONSTANT hdr-flags2
-0x18 CONSTANT hdr-abbreviations
-0x1a CONSTANT hdr-file-size
-0x1c CONSTANT hdr-checksum
-0x1e CONSTANT hdr-interpreter-number
-0x1f CONSTANT hdr-interpreter-version
+$00 CONSTANT hdr-version
+$01 CONSTANT hdr-flags1
+$04 CONSTANT hdr-himem
+$06 CONSTANT hdr-init-pc
+$08 CONSTANT hdr-dictionary
+$0a CONSTANT hdr-objtable
+$0c CONSTANT hdr-globals
+$0e CONSTANT hdr-static-mem
+$10 CONSTANT hdr-flags2
+$18 CONSTANT hdr-abbreviations
+$1a CONSTANT hdr-file-size
+$1c CONSTANT hdr-checksum
+$1e CONSTANT hdr-interpreter-number
+$1f CONSTANT hdr-interpreter-version
 
-0x20 CONSTANT hdr-screen-height-chars
-0x21 CONSTANT hdr-screen-width-chars
-0x22 CONSTANT hdr-screen-height-units
-0x24 CONSTANT hdr-screen-width-units
-0x26 CONSTANT hdr-font-width-units
-0x27 CONSTANT hdr-font-height-units
-0x2c CONSTANT hdr-default-background
-0x2d CONSTANT hdr-default-foreground
-0x2e CONSTANT hdr-terminators
+$20 CONSTANT hdr-screen-height-chars
+$21 CONSTANT hdr-screen-width-chars
+$22 CONSTANT hdr-screen-height-units
+$24 CONSTANT hdr-screen-width-units
+$26 CONSTANT hdr-font-width-units
+$27 CONSTANT hdr-font-height-units
+$2c CONSTANT hdr-default-background
+$2d CONSTANT hdr-default-foreground
+$2e CONSTANT hdr-terminators
 
-0x32 CONSTANT hdr-standard-revision
-0x34 CONSTANT hdr-alphabet-table
-0x36 CONSTANT hdr-extension-table
+$32 CONSTANT hdr-standard-revision
+$34 CONSTANT hdr-alphabet-table
+$36 CONSTANT hdr-extension-table
 
 \ Returns the Z-machine version in play.
 : version ( -- u ) hdr-version b@ ;

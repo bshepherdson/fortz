@@ -137,7 +137,7 @@ CONSTANT a2-table
   dup 10 rshift 31 and string-expand
   dup  5 rshift 31 and string-expand
   dup           31 and string-expand
-  0x8000 and ( done? )
+  $8000 and ( done? )
   dup IF 255 string-expand THEN
 ;
 
@@ -172,7 +172,7 @@ CONSTANT a2-table
 \ Doesn't affect any of the buffers.
 : string-length ( ra -- u )
   0 BEGIN ( ra count )
-    1+ over w@ 0x8000 and not ( ra count' ? )
+    1+ over w@ $8000 and not ( ra count' ? )
   WHILE
     swap 2 + swap
   REPEAT
@@ -239,7 +239,7 @@ CONSTANT a2-table
 \ Returns 0 for non-found words.
 : dict-lookup ( -- ra-dict )
   dict-entry-size 4 6 3or5 ( entry-size bytes )
-  dict-entry-0  ram
+  dict-entry-0  ram +
   dict-entry-size dict-entry-count * ( entry-size bytes c-addr total-size )
   over + swap ( entry-size bytes c-addr-end c-addr-start )
   DO ( entry-size bytes )
@@ -248,7 +248,7 @@ CONSTANT a2-table
     compare            ( size bytes cmp )
     dup 0>= IF \ Early exit
       -rot 2drop ( cmp )
-      0= IF i 0 ram - ELSE 0 THEN
+      0= IF i ram - ELSE 0 THEN
       UNLOOP EXIT
     THEN
     drop ( size bytes )

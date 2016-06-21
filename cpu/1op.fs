@@ -50,7 +50,7 @@
 \ v5:   call_1n routine
 :noname
   version 4 <= IF \ not
-    invert 0xffff and zstore
+    invert $ffff and zstore
   ELSE \ call_1n
     pa 1 false zcall
   THEN
