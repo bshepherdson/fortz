@@ -66,5 +66,7 @@ VARIABLE story-file
 
 \ For testing
 init-logging
-S" Zork1.z3" load-file restart interp
+\ S" Zork1.z3"
+S" tests/czech/czech.z3"
+load-file restart interp
 

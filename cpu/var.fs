@@ -134,7 +134,10 @@ create read-buffer 256 allot align
 :noname ( value 1 -- ) drop push ; 8 VAROPS !
 
 \ pull (var)
-:noname ( var 1 -- ) drop pop swap var! ; 9 VAROPS !
+:noname ( var 1 -- )
+  drop pop swap ( val var )
+  dup 0= IF drop sp @ ! ELSE var! THEN
+; 9 VAROPS !
 
 \ split_window
 :noname ( lines 1 -- ) 2drop ." [Unimplemented: split_window]" cr ; 10 VAROPS !

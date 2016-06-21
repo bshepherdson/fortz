@@ -44,7 +44,7 @@
 :noname pa print-string ; 13 1OPS !
 
 \ load (var) -> (result)
-:noname var@ zstore ; 14 1OPS !
+:noname dup 0= IF drop sp @ @ ELSE var@ THEN zstore ; 14 1OPS !
 
 \ v1-4: not value -> (result)
 \ v5:   call_1n routine

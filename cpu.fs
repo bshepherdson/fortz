@@ -103,6 +103,7 @@ variable var-count
   s>d rot s>d ( opcode pc 0 checksum 0 )
   hex <# #s 2drop 32 hold #s #> decimal log-file @ WRITE-LINE
   ABORT" Failed to log PC to log file"
+  \ log-file @ FLUSH-FILE ABORT" Failed to flush"
   dup $be =   version 5 >= and IF extended-form EXIT THEN
   dup 6 rshift 3 and ( opcode top-two-bits )
   CASE
@@ -110,6 +111,9 @@ variable var-count
   2 OF short-form    ENDOF
   drop long-form 0
   ENDCASE
-  depth 0> ABORT" Opcode left junk on the stack"
+  depth 0> IF
+    ." Opcode at " pc @ hex. ."  left junk on the stack: " .s
+    ABORT
+  THEN
 ;
 

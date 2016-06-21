@@ -19,7 +19,7 @@
   1- $ffff and
   2dup swap var! ( val var x )
   nip ( val x )
-  signed swap <
+  signed swap signed <
   zbranch
 ; 4 2OPS !
 
@@ -29,7 +29,7 @@
   1+ $ffff and
   2dup swap var! ( val var x )
   nip ( val x )
-  signed swap signed   >
+  signed swap signed >
   zbranch
 ; 5 2OPS !
 
@@ -53,7 +53,7 @@
 :noname ( attr obj ) false -rot attr! ; 12 2OPS !
 
 \ store (var) value
-:noname ( value var -- ) var! ; 13 2OPS !
+:noname ( value var -- ) dup 0= IF drop sp @ ! ELSE var! THEN ; 13 2OPS !
 
 
 VARIABLE dump-number
