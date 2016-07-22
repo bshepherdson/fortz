@@ -12,7 +12,7 @@
 
 \ log_shift number places -> (result)
 :noname ( places number 2 -- )
-  drop swap  ( number places )
+  drop swap signed ( number places )
   dup 0< IF negate rshift ELSE lshift THEN ( number' )
   zstore
 ; 2 EXTOPS !
@@ -21,7 +21,7 @@
 \ Simply signs the number first. Then the unused high two bytes become FFFF and
 \ can be shifted in.
 :noname ( places number 2 -- )
-  drop signed swap  ( number places )
+  drop signed swap signed ( number places )
   dup 0< IF negate rshift ELSE lshift THEN ( number' )
   zstore
 ; 3 EXTOPS !

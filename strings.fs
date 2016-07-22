@@ -296,7 +296,9 @@ VARIABLE zm-input-0 \ Start of the input buffer, for computing offsets.
   \ Go until we run out of string or hit a separator, copying to input-buffer.
   string-reset fill-5s
   \ Write the starting position into its parse buffer.
-  zm-input-pos  1+  parse-record-position b!
+  zm-input-pos  1+
+  version 5 = IF 1+ THEN \ Version 5 has an extra byte in the raw input buffer.
+  parse-record-position b!
   dup ( start-len current-len )
   BEGIN
     dup 0>

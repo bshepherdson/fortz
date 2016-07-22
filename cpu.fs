@@ -54,16 +54,23 @@ variable var-count
   var-count @ ( args... n-args )
 ;
 
+\ Internal helper for read-var-args.
+: (read-var-args)
+  dup 6 rshift read-arg IF add-var-arg THEN
+  dup 4 rshift read-arg IF add-var-arg THEN
+  dup 2 rshift read-arg IF add-var-arg THEN
+               read-arg IF add-var-arg THEN
+;
+
 : read-var-args ( n-bytes -- args... n-args )
+  >R
   0 var-count !
-  0 DO ( )
-    pc@+ ( types )
-    dup 6 rshift read-arg IF add-var-arg THEN
-    dup 4 rshift read-arg IF add-var-arg THEN
-    dup 2 rshift read-arg IF add-var-arg THEN
-                 read-arg IF add-var-arg THEN
-  LOOP ( )
+  pc@+
+  R@ 1 > IF pc@+ swap THEN
+  (read-var-args)
+  R@ 1 > IF (read-var-args) THEN
   pop-var-args
+  R> drop
 ;
 
 : variable-form ( opcode -- )

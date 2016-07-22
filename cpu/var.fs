@@ -127,7 +127,7 @@ create read-buffer 256 allot align
 
 \ random range -> (result)
 :noname ( range 1 -- )
-  drop
+  drop signed
   dup 0= IF
     drop true-seed 0
   ELSE
