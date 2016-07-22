@@ -25,6 +25,14 @@
 \ Converts a character to lowercase.
 : lower-case ( c -- c ) dup 65 91 within IF 32 + THEN ;
 
+\ Lower-cases a whole string.
+: lower-case-str ( c-addr u -- )
+  0 ?DO
+    dup i +   dup c@ lower-case swap c!
+  LOOP
+  drop
+;
+
 
 create read-buffer 256 allot align
 256 allot align
@@ -73,7 +81,6 @@ create read-buffer 256 allot align
 ;
 
 
-\ Calls into v4read for now.
 \ TODO Needs support for other terminating characters.
 \ TODO Support partly-filled input buffer.
 : v5read ( routine time parse text n-args -- )
@@ -81,13 +88,17 @@ create read-buffer 256 allot align
   \ Slightly hacky, since I'm asking Forth to write into the Z-machine's buffer.
   ba dup 2 + ram + over b@ ( parse text c-addr maxlen )
   2dup accept           ( parse text c-addr maxlen len )
-  nip 2dup lower-case   ( parse text c-addr len )
+  nip 2dup lower-case-str ( parse text c-addr len )
   nip                   ( parse text len )
   2dup swap 1+ b!       ( parse text len ) \ Write read legth into text buffer
 
   \ Check that we were provided a parse buffer.
-  r> dup >r ( parse text len n-args )
-  1 = IF 2drop r> drop ( -- parse wasn't actually present ) 13 zstore EXIT THEN
+  r@ ( parse text len n-args )
+  1 = IF ( text len   R: n )
+    r> drop 2drop
+    ( -- parse wasn't actually present )
+    13 zstore EXIT
+  THEN
 
   \ Only parse if the parse buffer is nonzero.
   >r over IF 2 + r> parse-line ELSE r> drop 2drop THEN
@@ -140,28 +151,116 @@ create read-buffer 256 allot align
 ; 9 VAROPS !
 
 \ split_window
-:noname ( lines 1 -- ) 2drop ." [Unimplemented: split_window]" cr ; 10 VAROPS !
+:noname ( lines 1 -- )
+  drop
+  \ In version 3, we need to leave extra room for the status line.
+  version 3 <= IF 1+ THEN
+  dup resize-upper-window
+  version 3 = IF
+    \ Erase each line of the upper window.
+    cursor-save
+    1+ 1 DO
+      i 0 cursor-move
+      erase-line
+    LOOP
+    cursor-restore
+  ELSE
+    drop
+  THEN
+; 10 VAROPS !
+
 \ set_window
-:noname ( win 1 -- )   2drop ." [Unimplemented: set_window]"   cr ; 11 VAROPS !
+:noname ( win 1 -- )
+  drop
+  \ Window 0 is the bottom, scrolling window. Window 1 is the top window.
+  IF \ switch to top window
+    term-window @ 0= IF \ Currently in the bottom window.
+      \ Save the cursor.
+      cursor-position cursor-upper 2!
+      1 term-window !
+    THEN
+    \ Whether we moved or not, reset the cursor to 2,1 if this is version 3,
+    \ 1,1 otherwise.
+    1   version 3 = IF 1+ THEN   0 cursor-move
+  ELSE \ switch to bottom window
+    term-window @ IF \ Currently in the top window.
+      cursor-position cursor-upper 2!
+      cursor-lower 2@ cursor-move
+      0 term-window !
+    THEN \ Do nothing if we're already in the bottom window.
+  THEN
+; 11 VAROPS !
 
 \ call_vs2 routine args... (up to 7) -> (result)
 :noname ( args... routine n -- ) swap pa swap   true zcall ; 12 VAROPS !
 
 \ erase_window
-:noname ( win 1 -- ) 2drop ." [Unimplemented: erase_window]" cr ; 13 VAROPS !
+\ Erase window 0 or 1.
+\ -1 means unsplit and clear all.
+\ -2 means clear all but don't unsplit.
+:noname ( win 1 -- )
+  drop CASE
+    0 OF
+      cursor-save
+      term-rows @   upper-window-size @ 1+ DO
+        i 0 cursor-move
+        erase-line
+      LOOP
+      cursor-restore
+    ENDOF
+
+    1 OF
+      cursor-save
+      upper-window-size @ 1 DO
+        i 0 cursor-move
+        erase-line
+      LOOP
+      cursor-restore
+    ENDOF
+
+    -1 OF
+      \ Unsplit and then clear everything.
+      1   version 3 = and   resize-upper-window
+      erase-screen
+    ENDOF
+
+    -2 OF
+      \ Clear everything but don't unsplit.
+      erase-screen
+    ENDOF
+  ENDCASE
+; 13 VAROPS !
 
 \ erase_line
-:noname ( value 1 -- ) 2drop ." [Unimplemented: erase_line]" cr ; 14 VAROPS !
+:noname ( value 1 -- )
+  \ Do nothing if value is not 1.
+  \ Erases from the cursor through the end of the line.
+  drop 1 = IF erase-to-eol THEN
+; 14 VAROPS !
 
 \ set_cursor
 :noname ( col lin 2 -- )
-  drop 2drop ." [Unimplemented: set_cursor]" cr ; 15 VAROPS !
+  drop
+  swap cursor-move
+; 15 VAROPS !
 
-:noname ( array 1 -- ) 2drop ." [Unimplemented: get_cursor]" cr ; 16 VAROPS !
-:noname ( s 1 -- ) 2drop ." [Unimplemented: set_text_style]" cr ; 17 VAROPS !
+\ get_cursor
+\ Puts the row into word 0, line into word 1.
+:noname ( array 1 -- )
+  drop cursor-position ( array row col )
+  >R over w!
+  2 + R> ( array' col )
+  swap w!
+; 16 VAROPS !
+
+\ TODO Implement set_text_style. Currently a no-op - always Roman.
+:noname ( s 1 -- ) 2drop ; 17 VAROPS !
 :noname ( flag 1 -- ) 2drop ." [Unimplemented: buffer_mode]" cr ; 18 VAROPS !
-:noname ( num 1 -- )
-  discard-args ." [Unimplemented: output_stream]" cr ; 19 VAROPS !
+
+\ Expects 2 arguments.
+\ TODO Implement more output streams.
+:noname ( table num 1 -- ) discard-args ; 19 VAROPS !
+
 :noname ( num 1 -- ) 2drop ." [Unimplemented: input_stream]" cr ; 20 VAROPS !
 :noname ( ... n -- )
   discard-args ." [Unimplemented: sound_effect]" cr ; 21 VAROPS !
@@ -228,8 +327,10 @@ create read-buffer 256 allot align
 :noname discard-args ." [Unimplemented: print_table]" cr ; 30 VAROPS !
 
 \ check_arg_count argument-number
-\ TODO Implement check_arg_count
-:noname discard-args ." [Unimplemented: check_arg_count]" cr ; 31 VAROPS !
+:noname ( arg-number 1 -- )
+  \ NB: It counts from 1, so we use <= here.
+  drop arg-count @ <= zbranch
+; 31 VAROPS !
 
 \ Special case VAR format je.
 \ Branches if a is equal to any of the later values.

@@ -68,10 +68,11 @@ create story-size-multipliers 2 c, 2 c, 2 c, 4 c, 4 c, 8 c, 8 c, 8 c, ALIGN
   \ Set interpreter version A.
   65 hdr-interpreter-version b!
 
-  25 hdr-screen-height-chars b!
-  80 hdr-screen-width-chars  b!
-  25 hdr-screen-height-units w!
-  80 hdr-screen-width-units  w!
+  term-size ( rows cols )
+  dup hdr-screen-height-chars b!
+      hdr-screen-height-units w!
+  dup hdr-screen-width-chars b!
+      hdr-screen-width-units w!
 
   1  hdr-font-width-units  b!
   1  hdr-font-height-units b!

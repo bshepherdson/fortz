@@ -33,6 +33,7 @@
 \ old-fp        <--- fp
 \ old-sp
 \ old-pc
+\ arg-count
 \ return-expected <--- sp
 
 \ NB: In order to make save files portable between runs of the emulator,
@@ -43,7 +44,8 @@
 : old-FP ( -- a-addr ) fp @ ;
 : old-SP ( -- a-addr ) fp @ 1 cells - ;
 : old-PC ( -- a-addr ) fp @ 2 cells - ;
-: expected-return ( -- a-addr ) fp @ 3 cells - ;
+: arg-count ( -- a-addr ) fp @ 3 cells - ;
+: expected-return ( -- a-addr ) fp @ 4 cells - ;
 
 \ Note that the ret-value is the actual value, not a variable reference.
 \ Therefore if it came from a local or the stack, we're free to mangle those.
@@ -135,9 +137,12 @@
   \ Save the return-expectation too.
   expected-return ! ( args... n )
 
-  \ The new SP is three cells lower than the new FP.
-  \ That is, it points at the expected return, which is at fp-3.
-  fp @ 3 cells - sp !
+  \ n is actually 1 greater than the number of arguments.
+  dup 1- arg-count !
+
+  \ The new SP is four cells lower than the new FP.
+  \ That is, it points at the expected return, which is at fp-4.
+  fp @ 4 cells - sp !
 
   \ Note that N is one greater than the number of arguments. Perfect, since
   \ locals are numbersed from 1.

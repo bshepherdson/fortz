@@ -4,6 +4,7 @@ FORTH=${FORTH:-forth}
 
 $FORTH \
   util.fs \
+  term.fs \
   random.fs \
   core.fs \
   mem.fs \
