@@ -62,7 +62,7 @@ VARIABLE story-file
 
 \ For testing
 \ S" Zork1.z3"
-\ S" Zork1.z5"
+S" Zork1.z5"
 \ S" etude.z5"
 \ S" czech.z5"
 load-file restart interp

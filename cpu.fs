@@ -101,13 +101,7 @@ variable var-count
 
 \ Runs a single opcode.
 : execute-op ( -- )
-  0 \ fake-checksum
-  pc @
   pc@+
-
-  ( checksum pc opcode )
-  -rot ( opcode checksum pc )
-  s>d rot s>d ( opcode pc 0 checksum 0 )
   dup $be =   version 5 >= and IF extended-form EXIT THEN
   dup 6 rshift 3 and ( opcode top-two-bits )
   CASE

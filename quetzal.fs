@@ -10,7 +10,7 @@
 \ All of dynamic memory, up to the top noted in the header.
 
 \ 80,000 bytes of save buffer, which is plenty.
-here CONSTANT save-buffer 80000 allot
+here 80000 allot CONSTANT save-buffer
 VARIABLE save-ptr
 
 : byte>save ( byte -- ) save-ptr @ c!   1 save-ptr +! ;
