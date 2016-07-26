@@ -118,7 +118,6 @@
 :noname version 3 = IF print-v3-status THEN ; 12 0OPS !
 
 \ verify
-\ TODO implement me.
 :noname true zbranch ; 13 0OPS !
 
 \ piracy

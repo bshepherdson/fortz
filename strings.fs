@@ -217,7 +217,10 @@ CONSTANT a2-table
 : encode-char ( ascii-char -- )
   dup 97 123 within IF 91 - string-expand EXIT THEN
   a2-table 24 + a2-table DO ( char )
-    dup i c@ = IF 5 string-expand string-expand UNLOOP EXIT THEN
+    dup i c@ = IF
+      5 string-expand   drop   i a2-table - 8 + string-expand
+      UNLOOP EXIT
+    THEN
   LOOP
   \ If we're still here, it's not in A0 or A2, so output the multi-byte
   \ sequence for it.
@@ -292,13 +295,14 @@ VARIABLE zm-input-0 \ Start of the input buffer, for computing offsets.
   WHILE 1-   1 zm-input +!  REPEAT
 ;
 
+\ Version 5 has an extra byte in the input buffer.
+: real-input-pos ( -- pos ) zm-input-pos 1+   version 5 = IF 1+ THEN ;
+
 : parse-word ( text-len -- text-len' )
   \ Go until we run out of string or hit a separator, copying to input-buffer.
   string-reset fill-5s
   \ Write the starting position into its parse buffer.
-  zm-input-pos  1+
-  version 5 = IF 1+ THEN \ Version 5 has an extra byte in the raw input buffer.
-  parse-record-position b!
+  real-input-pos parse-record-position b!
   dup ( start-len current-len )
   BEGIN
     dup 0>
@@ -315,10 +319,14 @@ VARIABLE zm-input-0 \ Start of the input buffer, for computing offsets.
 
 : parse-single-delimiter ( text-len -- text-len' )
   string-reset fill-5s
-  zm-input-pos  parse-record-position b!
+  real-input-pos parse-record-position b!
   1 parse-record-length b!
   ascii>zscii
   1-
+  \ At this point, input-buffer should be loaded with the raw Z-chars,
+  \ one byte each, not compacted.
+  zscii>zstring
+  dict-lookup parse-record-dict w!
 ;
 
 : locate-word ( text-len -- text-len' )
@@ -347,5 +355,19 @@ VARIABLE zm-input-0 \ Start of the input buffer, for computing offsets.
   zm-parse @ ( parse0 parse-end )
   over 2 + -   2 rshift   ( parse0 parse-end )
   over 1+ b! \ Write number of words parsed.
+
+  \ debugging ( parse0 )
+  \ 2 +
+  \ dup 1- b@ ( word0 words )
+  \ 0 DO
+  \   dup i 2 lshift + ( word0 wordN )
+  \   ." Parsed: "
+  \   dup w@ hex.
+  \   dup 2 + b@ hex.
+  \       3 + b@ hex.
+  \   cr
+  \ LOOP ( word0 )
+  \ end debugging
+
   drop ( )
 ;
