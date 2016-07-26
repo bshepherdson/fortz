@@ -100,6 +100,10 @@
   drop
 ;
 
+: zero-locals ( local-count -- )
+  0 ?DO 0 i 1+ local! LOOP
+;
+
 \ Given a count on top, deletes the count and count more values.
 : discard-args ( ... n -- ) BEGIN dup WHILE nip 1- REPEAT drop ;
 
@@ -129,7 +133,9 @@
     2dup 2 * 1 + + pc ! ( ... routine local-count )
     copy-locals ( ... )
   ELSE ( ... routine local-count )
-    drop 1+ pc ! ( ... )
+    \ 0 out the locals.
+    zero-locals ( ... routine )
+    1+ pc ! ( ... )
   THEN
 
   ( args... n ret? )
