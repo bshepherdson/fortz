@@ -79,5 +79,6 @@ create story-size-multipliers 2 c, 2 c, 2 c, 4 c, 4 c, 8 c, 8 c, 8 c, ALIGN
   1  hdr-font-width-units  b!
   1  hdr-font-height-units b!
 
-  \ TODO set default colors.
+  2  hdr-default-background b! \ black
+  9  hdr-default-foreground b! \ white
 ;

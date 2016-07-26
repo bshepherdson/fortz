@@ -29,8 +29,13 @@ here 8 cells allot CONSTANT term-buf
   'R' read-number-to ( row col )
 ;
 
+\ Save/restore just the cursor position.
 : cursor-save ( -- ) esc-brack 's' emit ;
 : cursor-restore ( -- ) esc-brack 'u' emit ;
+
+\ Save/restore the cursor position and attributes.
+: term-save ( -- ) esc-brack '7' emit ;
+: term-restore ( -- ) esc-brack '8' emit ;
 
 \ Save the cursor position, move it to 999,999, ask for its position, restore.
 : term-size ( -- rows cols )
@@ -114,9 +119,10 @@ align CONSTANT colour-map
 ;
 
 
+
 \ Notes on the Z-machine screen model:
-\ TODO: There's a bit (5 in Flags 1) that signals whether screen splitting is
-\ available, at least in version 3 (and later?)
+\ TODO There's a bit (5 in Flags 1) that signals whether screen splitting is
+\ available, for version 3 and below.
 
 \ By version:
 \ 1-2: No cursor control or windows: status line and teletype, essentially.
