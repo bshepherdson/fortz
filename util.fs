@@ -16,8 +16,6 @@
 
 : dump-bytes ( c-addr u -- ) 0 DO dup i + c@ hex. LOOP cr drop ;
 
-VARIABLE log-file
-
 \ File handle for the stderr stream, usable with the file-access word set.
 c-call fdopen
 2 S" w" >cstring   fdopen ccall2   CONSTANT stderr

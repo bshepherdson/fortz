@@ -108,9 +108,6 @@ variable var-count
   ( checksum pc opcode )
   -rot ( opcode checksum pc )
   s>d rot s>d ( opcode pc 0 checksum 0 )
-  hex <# #s 2drop 32 hold #s #> decimal log-file @ WRITE-LINE
-  ABORT" Failed to log PC to log file"
-  \ log-file @ FLUSH-FILE ABORT" Failed to flush"
   dup $be =   version 5 >= and IF extended-form EXIT THEN
   dup 6 rshift 3 and ( opcode top-two-bits )
   CASE
