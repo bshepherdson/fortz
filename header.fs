@@ -54,14 +54,16 @@ create story-size-multipliers 2 c, 2 c, 2 c, 4 c, 4 c, 8 c, 8 c, 8 c, ALIGN
     %00010000 \ Indicate no status line, no screen split, fixed-pitch font.
     %01110000 \ Mask for the interpreter-set bits.
   ELSE
-    0   \ None of these special features are available.
+    %00011101 \ Indicates colours, bold, italic, fixed and reverse are allowed.
     255 \ Mask: all settable by interpreter
   THEN ( set mask )
-  hdr-flags1 b@ and or ( flags1' )
-  hdr-flags2 b! ( )
+  invert hdr-flags1 b@ and   or ( flags1' )
+  hdr-flags1 b! ( )
 
-  \ Flags 2 is set to 0; those features are unavailable.
-  0 hdr-flags2 w!
+  \ Flags 2: The game sets bits for things it wants to use, the game clears
+  \ them. If it can't support them.
+  \ The only flag we do support is bit 6 - colours.
+  hdr-flags2 w@   $20 and   hdr-flags2 w!
 
   \ Set interpreter number 6, pretending to be an IBM PC.
   6  hdr-interpreter-number b!

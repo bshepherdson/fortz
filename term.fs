@@ -76,6 +76,44 @@ here 2 cells allot CONSTANT cursor-lower
 
 init-term
 
+
+\ Screen attributes.
+\ Both the terminal and the Z-machine can only set-one or clear-all.
+: term-roman     ( -- ) esc-brack '0' emit 'm' emit ;
+: term-bold      ( -- ) esc-brack '1' emit 'm' emit ;
+: term-italic    ( -- ) esc-brack '4' emit 'm' emit ;
+: term-reverse   ( -- ) esc-brack '7' emit 'm' emit ;
+
+here
+'9' c, \ 0 is never used; it means "current" and we skip it.
+'9' c, \ 1 = default = '9'
+'0' c, \ 2 = black = '0'
+'1' c, \ 3 = red = '1'
+'2' c, \ 4 = green = '2'
+'3' c, \ 5 = yellow = '3'
+'4' c, \ 6 = blue = '4'
+'5' c, \ 7 = magenta = '5'
+'6' c, \ 8 = cyan = '6'
+'7' c, \ 9 = white = '7'
+align CONSTANT colour-map
+
+\ Z-machine colours are given as 0-9 which index into this table:
+: convert-colour ( c -- char ) colour-map + c@ ;
+
+\ Sets a single colour. The first character ('3' for foreground, '4' for
+\ background) is emitted first.
+: term-colour ( c char -- )
+  esc-brack emit convert-colour emit 'm' emit
+;
+
+\ Colours are always set as a pair, foreground and background.
+: term-colours ( bg fg -- )
+  \ Z-machine colour 0 means "current", so I don't change anything.
+  dup IF '3' term-colour ELSE drop THEN
+  dup IF '4' term-colour ELSE drop THEN
+;
+
+
 \ Notes on the Z-machine screen model:
 \ TODO: There's a bit (5 in Flags 1) that signals whether screen splitting is
 \ available, at least in version 3 (and later?)

@@ -253,8 +253,17 @@ create read-buffer 256 allot align
   swap w!
 ; 16 VAROPS !
 
-\ TODO Implement set_text_style. Currently a no-op - always Roman.
-:noname ( s 1 -- ) 2drop ; 17 VAROPS !
+\ set_text_style style
+:noname ( style 1 -- )
+  drop
+  dup 0= IF drop term-roman EXIT THEN
+  dup 1 and IF term-reverse THEN
+  dup 2 and IF term-bold THEN
+  dup 4 and IF term-italic THEN
+  drop
+  \ No need to support fixed-pitch; it's always on.
+; 17 VAROPS !
+
 :noname ( flag 1 -- ) 2drop ." [Unimplemented: buffer_mode]" cr ; 18 VAROPS !
 
 \ Expects 2 arguments.

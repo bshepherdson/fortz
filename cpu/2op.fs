@@ -155,9 +155,8 @@ VARIABLE line-ptr
 \ call_2n routine arg
 :noname ( arg routine -- ) pa 2 false zcall ; 26 2OPS !
 
-\ TODO Implement me COLOR
 \ set_colour fg bg
-:noname 2drop ." [Unimplemented: set_colour]" cr ; 27 2OPS !
+:noname ( bg fg -- ) term-colours ; 27 2OPS !
 
 \ TODO Adjust for save format. SAVE
 \ throw value stack-frame
