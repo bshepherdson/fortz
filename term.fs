@@ -57,16 +57,31 @@ VARIABLE upper-window-size
 ;
 
 
-\ Erasing regions
-\ Erases the whole current line.
-: erase-line ( -- ) esc-brack '2' emit 'K' emit ;
-\ Erases from the cursor to the end of the line.
-: erase-to-eol ( -- ) esc-brack 'K' emit ;
-: erase-screen ( -- ) esc-brack '2' emit 'J' emit ;
-
 VARIABLE term-rows
 VARIABLE term-cols
 VARIABLE term-window
+
+\ Erasing regions
+\ Erases the whole current line.
+\ Do so manually, with spaces, so that the background colour is honoured.
+: erase-line ( -- )
+  cursor-position drop ( row col )
+  cursor-save 1 cursor-move ( )
+  term-cols @ spaces
+  cursor-restore
+;
+
+\ Erases from the cursor to the end of the line.
+: erase-to-eol ( -- )
+  cursor-position ( row col )
+  \ 2dup .err .err cr-err
+  cursor-save term-cols @ swap - ( row col-delta )
+  spaces drop ( )
+  cursor-restore
+;
+
+: erase-screen ( -- ) esc-brack '2' emit 'J' emit ;
+
 
 here 2 cells allot CONSTANT cursor-upper
 here 2 cells allot CONSTANT cursor-lower
