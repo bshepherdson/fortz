@@ -8,6 +8,9 @@ CREATE (zmem)   mem-size allot
 
 VARIABLE pc
 VARIABLE sp
+VARIABLE fp
 
-CREATE (zstack)   1024 2 * allot
+CREATE (zstack)   1024 cells allot
 here CONSTANT (zstack-top)
+
+DEFER restart

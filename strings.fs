@@ -140,6 +140,7 @@ VARIABLE (zstr-scratch)
   dup BEGIN dup w@ (zstr-decode-word) 0= WHILE 2 + REPEAT swap - 2 / ;
 ' (zstr-decode-int) IS (zstr-decode)
 
+: decoded-string ( -- c-addr u ) zs-out   (zs-out*) @ ;
 
 \ Top-level string decoder. Resets the output buffer, and returns the result as
 \ a Forth-style string.
@@ -148,7 +149,7 @@ VARIABLE (zstr-scratch)
 : zstr-decode ( ra -- c-addr u )
   0 (zs-out*) !   (reg)
   (zstr-decode) drop
-  zs-out   (zs-out*) @
+  decoded-string
 ;
 
 \ Convenience that decodes a string at PC, and adjusts PC accordingly.

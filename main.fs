@@ -6,6 +6,8 @@ REQUIRE header.fs
 REQUIRE mem.fs
 REQUIRE random.fs
 REQUIRE strings.fs
+REQUIRE objects.fs
+REQUIRE ops.fs
 
 
 VARIABLE (story-file)
@@ -17,7 +19,7 @@ VARIABLE (story-file)
 ;
 
 \ Reloads the story file, and sets up to run it.
-: RESTART ( -- )
+: (RESTART) ( -- )
   0 s>d (story-file) @ reposition-file ABORT" Could not reset to start of story"
   \ Read the entire file on top of the memory.
   \ TODO A few parts aren't supposed to be overwritten.
@@ -26,4 +28,6 @@ VARIABLE (story-file)
 
   \ TODO More legwork here: populate flags etc., set initial PC, initial SP.
 ;
+
+' (RESTART) IS restart \ Populate the deferred word.
 
